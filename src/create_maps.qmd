@@ -4,27 +4,48 @@ format: html
 editor: visual
 ---
 
-# Load pkgs 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE) # no warnings or messages 
 
-```{r}
-if (!require(pacman)) install.packages("pacman")
-
-pacman::p_load(leaflet, sf, dplyr, tigris, here, glue)
+knitr::opts_chunk$set(echo=FALSE) # not showing the code
 ```
 
+```{r}
+# Load pkgs 
+
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(leaflet, sf, readr, dplyr, here, glue
+               #tigris
+               )
+```
+
+
+```{r, echo = FALSE}
 # Load data 
 
-```{r}
 # Load county-level outcomes
 df <- read.csv(here("raw_data", "cnty_counts_cov.csv"))
 
+counties <- readr::read_rds(here("raw_data", "counties.rds"))
+
+states <- readr::read_rds(here("raw_data", "states.rds"))
+
 #list.files(here("raw_data"))
 
-# Load county shapefiles from `tigris`
-counties <- counties(cb = TRUE, resolution = "20m")
+# Load county boundaries (US states from tigris package)
+
+# counties <- counties(cb = TRUE)
+# readr::write_rds(counties, here("raw_data", "counties.rds"))
+
+# Load state boundaries (US states from tigris package)
+# states <- states(cb = TRUE)
+# write_rds(states, here("raw_data", "states.rds"))
 ```
 
 # Create maps 
+
+## Civic opportunity 
 
 ```{r}
 # Ensure FIPS codes match
@@ -33,16 +54,40 @@ df$fips <- sprintf("%05d", df$FIPS)
 # Merge datasets
 map_data <- left_join(counties, df, by = c("GEOID" = "fips"))
 
-# Create interactive map
+# Merge state boundaries with map_data if necessary
+map_data <- st_as_sf(map_data)  # Ensure it's an sf object
+map_data <- st_transform(map_data, crs = st_crs(states))  # Match CRS
+```
+
+```{r}
+# Create categorical bins (1 to 5)
+map_data <- map_data %>%
+  mutate(civic_opp_category = ntile(civic_opp_sum_normalized, 5))  # Divides into 5 groups (1-5)
+
+# Define a color palette using colorFactor
+pal <- colorFactor("YlOrRd", domain = map_data$civic_opp_category)
+
 leaflet(map_data) %>%
   addTiles() %>%
   addPolygons(
-    fillColor = ~colorQuantile("YlOrRd", civic_opp_sum_normalized, n = 5)(civic_opp_sum_normalized),
+    fillColor = ~pal(civic_opp_category),
     fillOpacity = 0.7,
     color = "#BDBDC1",
     weight = 1
   ) %>%
-  addLegend(pal = colorQuantile("YlOrRd", map_data$civic_opp_sum_normalized, n = 5),
-            values = map_data$value,
-            title = "Civic opportunity index")
+  addPolygons(
+    data = states,  # Overlay state boundaries
+    color = "black",  # Boundary color
+    weight = 1,
+    fillOpacity = 0,  # Transparent fill
+    label = ~NAME  # Show state names on hover
+  ) %>%
+  addLegend(
+    pal = pal,
+    values = map_data$civic_opp_category,
+    title = "Civic Opportunity Index",
+    labFormat = function(type, cuts, p) {
+      paste0(cuts)  # Ensures numbers 1-5 appear in the legend
+    }
+  )
 ```
