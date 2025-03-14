@@ -1,26 +1,22 @@
 ---
 title: "create_maps"
-format: html
-editor: visual
+author: "Jae Yeon Kim"
+output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE) # no warnings or messages 
+# Setup 
 
-knitr::opts_chunk$set(echo=FALSE) # not showing the code
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 ```
 
 ```{r}
 # Load pkgs 
 
 if (!require(pacman)) install.packages("pacman")
+pacman::p_load(leaflet, glue, sf, tigris, readr, dplyr, here, shiny, htmltools, htmlwidgets)
 
-pacman::p_load(leaflet, sf, readr, dplyr, here, glue,
-               shiny
-               #tigris
-               )
 ```
-
 
 ```{r, echo = FALSE}
 # Load data 
@@ -28,6 +24,10 @@ pacman::p_load(leaflet, sf, readr, dplyr, here, glue,
 # Load county-level outcomes
 df <- read.csv(here("raw_data", "cnty_counts_cov.csv"))
 
+sum(df$FIPS == 9009) # including New Haven County
+```
+
+```{r}
 counties <- readr::read_rds(here("raw_data", "counties.rds"))
 
 states <- readr::read_rds(here("raw_data", "states.rds"))
@@ -44,17 +44,25 @@ states <- readr::read_rds(here("raw_data", "states.rds"))
 # write_rds(states, here("raw_data", "states.rds"))
 ```
 
-# Create maps 
-
-## Civic opportunity 
+# Data prep
 
 ```{r}
 # Ensure FIPS codes match
 df$fips <- sprintf("%05d", df$FIPS)
 
+sum(df$fips == "09009") # including New Haven County
+
+setdiff(df$fips,counties$GEOID) # for some reason tigris::counties() does not include the following 8 counties in CT 
+```
+
+```{r}
 # Merge datasets
 map_data <- left_join(counties, df, by = c("GEOID" = "fips"))
 
+sum(map_data$FIPS == 9009) # doesn't include New Haven
+```
+
+```{r}
 # Merge state boundaries with map_data if necessary
 map_data <- st_as_sf(map_data)  # Ensure it's an sf object
 map_data <- st_transform(map_data, crs = st_crs(states))  # Match CRS
@@ -64,66 +72,71 @@ map_data <- st_transform(map_data, crs = st_crs(states))  # Match CRS
 # Create categorical bins (1 to 5)
 map_data <- map_data %>%
   mutate(civic_opp_category = ntile(civic_opp_sum_normalized, 5))  # Divides into 5 groups (1-5)
+```
 
-# Define a color palette using colorFactor
-pal <- colorFactor("YlOrRd", domain = map_data$civic_opp_category)
+# Create an interactive map
+
+```{r}
+options(shiny.launch.browser = TRUE)
 ```
 
 ```{r}
-civic_map <- leaflet(map_data) %>%
-  addTiles() %>%
-  addPolygons(
-    fillColor = ~pal(civic_opp_category),
-    fillOpacity = 0.7,
-    color = "#BDBDC1",
-    weight = 1
-  ) %>%
-  addPolygons(
-    data = states,  # Overlay state boundaries
-    color = "black",  # Boundary color
-    weight = 1,
-    fillOpacity = 0,  # Transparent fill
-    label = ~NAME,  # Show state names on hover
-    layerId = ~NAME
-  ) %>%
-  addLegend(
-    pal = pal,
-    values = map_data$civic_opp_category,
-    title = "Civic Opportunity Index",
-    labFormat = function(type, cuts, p) {
-      paste0(cuts)  # Ensures numbers 1-5 appear in the legend
-    }
-  )
-```
+# Update the county_info field with NAMELSAD in bold
+map_data <- map_data %>%
+  mutate(county_info = glue("<b>{NAMELSAD}</b><br/>Civic opportunity index: {civic_opp_index}"))
 
-# Create an UI 
-
-```{r}
-
-ui <- fluidPage(
-  leafletOutput("civic_map"),
+ui <- fillPage(
+  tags$head(
+    tags$style(HTML("
+      .leaflet-popup-content { 
+        white-space: pre-wrap; 
+      }
+    "))
+  ),
+  leafletOutput("civic_map", width = "100%", height = "100vh"),
   verbatimTextOutput("info")
 )
 
 server <- function(input, output, session) {
   
+  # Define a custom green color palette for 5 categories
+  green_colors <- c("#edf8e9", "#bae4b3", "#74c476", "#31a354", "#006d2c")
+  pal_green <- colorFactor(palette = green_colors, domain = map_data$civic_opp_category)
+  
   output$civic_map <- renderLeaflet({
-    civic_map %>%
-      setView(lng = -95.7129, lat = 37.0902, zoom = 4) # Centered on the USA
+    leaflet(map_data) %>%
+      addTiles() %>%
+      addPolygons(
+        fillColor = ~pal_green(civic_opp_category),
+        fillOpacity = 0.7,
+        color = "#BDBDC1",
+        weight = 1,
+        popup = ~county_info,  # Use I() to treat the label as safe HTML
+        labelOptions = labelOptions(
+          style = list("font-weight" = "normal", padding = "3px 8px"),
+          textsize = "15px",
+          direction = "auto"
+        ),
+        group = "Counties"
+      ) %>%
+      addPolygons(
+        data = states,
+        color = "black",
+        weight = 2,
+        fillOpacity = 0,
+        group = "States",
+        options = pathOptions(clickable = FALSE)
+      ) %>%
+      addLegend(
+        pal = pal_green,
+        values = map_data$civic_opp_category,
+        title = "Civic Opportunity Index",
+        labFormat = function(type, cuts, p) paste0(cuts)
+      ) %>%
+      setView(lng = -95.7129, lat = 37.0902, zoom = 4)
   })
   
-  observeEvent(input$civic_map_click, {
-    click <- input$civic_map_click
-    if (!is.null(click)) {
-      
-      info_text <- paste("Latitude:", 
-                         round(click$lat, 2), 
-                         "Longitude:", 
-                         round(click$lng, 2))
-      
-      output$info <- renderText(info_text)
-    }
-  })
+  output$info <- renderText("")
 }
 
 shinyApp(ui, server)
