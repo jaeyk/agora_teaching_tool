@@ -1,0 +1,17 @@
+---
+title: "MapAgorg Dashboard"
+format: html
+---
+
+# Welcome
+
+This dashboard visualizes the geography of civic infrastructure and opportunity in the United States.  
+
+Explore counts and classifications of civic opportunity organizations by ZIP code and county.
+
+---
+
+## Get Started
+
+- 👉 Use the **Explore Map** tab to interact with civic opportunity data.
+- 📊 Data includes counts, per capita rates, and classifications 

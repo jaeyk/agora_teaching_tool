@@ -14,7 +14,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 # Load pkgs 
 
 if (!require(pacman)) install.packages("pacman")
-pacman::p_load(leaflet, glue, sf, tigris, readr, dplyr, here, shiny, htmltools, htmlwidgets)
+pacman::p_load(leaflet, glue, sf, tigris, tidyverse, here, shiny, htmltools, htmlwidgets, DT)
 
 ```
 
@@ -139,5 +139,107 @@ server <- function(input, output, session) {
   output$info <- renderText("")
 }
 
+shinyApp(ui, server)
+```
+
+# Create an additional visualization tool
+
+```{r}
+df <- df %>%
+  mutate(FIPS = str_pad(as.character(FIPS), width = 5, side = "left", pad = "0"))
+
+# Load FIPS-to-county lookup
+fips_lookup <- read_csv(
+  "https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt",
+  col_names = c("state_abbr", "state_fips", "county_fips", "county_name", "fips_class"),
+  col_types = "ccccc"
+) %>%
+  mutate(FIPS = str_c(state_fips, county_fips)) %>%
+  select(FIPS, county_name, state_abbr)
+```
+
+```{r}
+# Now safe to join
+df_joined <- df %>%
+  left_join(fips_lookup, by = "FIPS") %>%
+  filter(!is.na(county_name)) %>%
+  mutate(
+    civic_opp_percentile = percent_rank(civic_opp_sum_normalized),
+    civic_opp_percentile_label = case_when(
+      civic_opp_percentile >= 0.99 ~ "Top 1%",
+      civic_opp_percentile >= 0.95 ~ "Top 5%",
+      civic_opp_percentile >= 0.90 ~ "Top 10%",
+      civic_opp_percentile >= 0.75 ~ "Top 25%",
+      civic_opp_percentile >= 0.50 ~ "Top 50%",
+      civic_opp_percentile >= 0.25 ~ "Bottom 50%",
+      civic_opp_percentile >= 0.10 ~ "Bottom 25%",
+      civic_opp_percentile >= 0.05 ~ "Bottom 10%",
+      TRUE ~ "Bottom 5%"
+    )
+  )
+```
+
+```{r}
+# UI
+ui <- fluidPage(
+  titlePanel("Find Similar Counties by Civic Opportunity Score"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("selected_state", "Select a State:",
+                  choices = sort(unique(df_joined$state_abbr))),
+      
+      selectInput("selected_county", "Select a County:",
+                  choices = NULL)  # we'll update this dynamically
+    ),
+    mainPanel(
+      h4("10 Most Similar Counties + Selected (with Percentile)"),
+      DTOutput("similar_table")
+    )
+  )
+)
+
+# Server
+server <- function(input, output, session) {
+  # Update county list when state changes
+  observeEvent(input$selected_state, {
+    counties_in_state <- df_joined %>%
+      filter(state_abbr == input$selected_state) %>%
+      arrange(county_name) %>%
+      pull(county_name) %>%
+      unique()
+    
+    updateSelectInput(session, "selected_county",
+                      choices = counties_in_state,
+                      selected = counties_in_state[1])
+  })
+  
+  output$similar_table <- renderDT({
+    req(input$selected_county)
+
+    selected_row <- df_joined %>%
+      filter(county_name == input$selected_county, state_abbr == input$selected_state)
+    
+    target_score <- selected_row$civic_opp_sum_normalized
+
+    similar_rows <- df_joined %>%
+      filter(!(county_name == input$selected_county & state_abbr == input$selected_state)) %>%
+      mutate(score_diff = abs(civic_opp_sum_normalized - target_score)) %>%
+      arrange(score_diff) %>%
+      head(10)
+
+    combined <- bind_rows(selected_row, similar_rows) %>%
+      select(county_name, state_abbr, civic_opp_sum_normalized, civic_opp_percentile_label) %>%
+      arrange(civic_opp_sum_normalized)
+
+    datatable(combined, rownames = FALSE, options = list(dom = 't')) %>%
+      formatStyle(
+        'county_name',
+        target = 'row',
+        backgroundColor = styleEqual(input$selected_county, 'lightgreen')
+      )
+  })
+}
+
+# Run the app
 shinyApp(ui, server)
 ```

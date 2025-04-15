@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "MapAgora Dashboard"
+  navbar:
+    left:
+      - text: Home
+        href: index.qmd
+      - text: Civic Map
+        href: map.qmd
+      - text: Similar Counties
+        href: similar_counties.qmd
+      - text: About
+        href: about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css

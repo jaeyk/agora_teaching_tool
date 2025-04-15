@@ -1,0 +1,69 @@
+---
+title: "Civic Opportunity Map"
+format: html
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+# Load packages
+if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
+pacman::p_load(leaflet, glue, sf, tigris, tidyverse, here, htmlwidgets, viridis, DT)
+
+# Load and prepare data
+df <- read.csv(here::here("raw_data", "cnty_counts_cov.csv"))
+df$fips <- sprintf("%05d", df$FIPS)
+
+counties <- readr::read_rds(here::here("raw_data", "counties.rds"))
+states <- readr::read_rds(here::here("raw_data", "states.rds"))
+
+map_data <- left_join(counties, df, by = c("GEOID" = "fips")) %>%
+  st_as_sf() %>%
+  st_transform(crs = st_crs(states)) %>%
+  mutate(
+    civic_opp_category = ntile(civic_opp_sum_normalized, 5),
+    county_info = glue("<b>{NAMELSAD}</b><br/>Civic opportunity index: {round(civic_opp_index, 2)}<br/>Civic orgs per 1k: {round(civic_opp_sum_normalized, 2)}")
+  )
+
+# Define color palette
+pal_green <- colorFactor(viridis(5), domain = map_data$civic_opp_category)
+
+# Render map
+leaflet(map_data, options = leafletOptions(minZoom = 3)) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_green(civic_opp_category),
+    fillOpacity = 0.7,
+    color = "#BDBDC1",
+    weight = 1,
+    popup = ~county_info,
+    group = "Counties"
+  ) %>%
+  addPolygons(
+    data = states,
+    color = "black",
+    weight = 2,
+    fillOpacity = 0,
+    group = "States",
+    options = pathOptions(clickable = FALSE)
+  ) %>%
+  addLegend(
+    pal = pal_green,
+    values = map_data$civic_opp_category,
+    title = "Civic Opportunity Index",
+    position = "bottomright"
+  ) %>%
+  addScaleBar(position = "bottomleft") %>%
+  addEasyButton(
+    easyButton(
+      icon = "fa-globe", title = "Reset Zoom",
+      onClick = JS("function(btn, map){ map.setView([37.0902, -95.7129], 4); }")
+    )
+  ) %>%
+  setView(lng = -95.7129, lat = 37.0902, zoom = 4) %>%
+  # Remove default zoom and geolocation control:
+  removeControl("zoom") %>%
+  removeControl("geolocate") 
+```

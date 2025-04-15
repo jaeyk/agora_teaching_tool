@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "src/create_maps.html",
+    "href": "src/create_maps.html",
+    "title": "create_maps",
+    "section": "",
+    "text": "Setup\n\n\n[1] 1\n\n\n\n\nData prep\n\n\n[1] 1\n\n\n[1] \"09001\" \"09003\" \"09005\" \"09007\" \"09009\" \"09011\" \"09013\" \"09015\"\n\n\n\n\n[1] NA\n\n\n\n\nCreate an interactive map\n\n\n\n\n\n\n\n\n\n\n\nCreate an additional visualization tool"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "MapAgorg Dashboard",
+    "section": "",
+    "text": "This dashboard visualizes the geography of civic infrastructure and opportunity in the United States.\nExplore counts and classifications of civic opportunity organizations by ZIP code and county.\n\n\n\n\n👉 Use the Explore Map tab to interact with civic opportunity data.\n📊 Data includes counts, per capita rates, and classifications"
+  },
+  {
+    "objectID": "index.html#get-started",
+    "href": "index.html#get-started",
+    "title": "MapAgorg Dashboard",
+    "section": "",
+    "text": "👉 Use the Explore Map tab to interact with civic opportunity data.\n📊 Data includes counts, per capita rates, and classifications"
+  },
+  {
+    "objectID": "map.html",
+    "href": "map.html",
+    "title": "Civic Opportunity Map",
+    "section": "",
+    "text": "Load packages\nif (!requireNamespace(“pacman”, quietly = TRUE)) install.packages(“pacman”) pacman::p_load(leaflet, glue, sf, tigris, tidyverse, here, htmlwidgets, viridis, DT)\n\n\nLoad and prepare data\ndf &lt;- read.csv(here::here(“raw_data”, “cnty_counts_cov.csv”)) df\\(fips &lt;- sprintf(\"%05d\", df\\)FIPS)\ncounties &lt;- readr::read_rds(here::here(“raw_data”, “counties.rds”)) states &lt;- readr::read_rds(here::here(“raw_data”, “states.rds”))\nmap_data &lt;- left_join(counties, df, by = c(“GEOID” = “fips”)) %&gt;% st_as_sf() %&gt;% st_transform(crs = st_crs(states)) %&gt;% mutate( civic_opp_category = ntile(civic_opp_sum_normalized, 5), county_info = glue(“{NAMELSAD}Civic opportunity index: {round(civic_opp_index, 2)}Civic orgs per 1k: {round(civic_opp_sum_normalized, 2)}”) )\n\n\nDefine color palette\npal_green &lt;- colorFactor(viridis(5), domain = map_data$civic_opp_category)\n\n\nRender map\nleaflet(map_data, options = leafletOptions(minZoom = 3)) %&gt;% addProviderTiles(“CartoDB.Positron”) %&gt;% addPolygons( fillColor = ~pal_green(civic_opp_category), fillOpacity = 0.7, color = “#BDBDC1”, weight = 1, popup = ~county_info, group = “Counties” ) %&gt;% addPolygons( data = states, color = “black”, weight = 2, fillOpacity = 0, group = “States”, options = pathOptions(clickable = FALSE) ) %&gt;% addLegend( pal = pal_green, values = map_data$civic_opp_category, title = “Civic Opportunity Index”, position = “bottomright” ) %&gt;% addScaleBar(position = “bottomleft”) %&gt;% addEasyButton( easyButton( icon = “fa-globe”, title = “Reset Zoom”, onClick = JS(“function(btn, map){ map.setView([37.0902, -95.7129], 4); }”) ) ) %&gt;% addMouseCoordinates() %&gt;% # Mouse coordinates control setView(lng = -95.7129, lat = 37.0902, zoom = 4) %&gt;% # Remove default zoom and geolocation control: removeControl(“zoom”) %&gt;% removeControl(“geolocate”)"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "This dashboard is powered by the MapAgora datasets, created from IRS Form 990 data and large-scale digital trace classification.\n\nAuthor: Jae Yeon Kim and Milan de Vries\nSource: MapAgora GitHub"
+  }
+]
