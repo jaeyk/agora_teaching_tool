@@ -1,0 +1,75 @@
+---
+title: "Similar counties"
+format: html
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+# Load pkgs
+
+if (!require(pacman)) install.packages("pacman")
+pacman::p_load(leaflet, glue, sf, tigris, tidyverse, here, htmltools, htmlwidgets, DT)
+
+# Load data
+df <- read.csv(here("raw_data", "cnty_counts_cov.csv"))
+
+counties <- readr::read_rds(here("raw_data", "counties.rds"))
+states <- readr::read_rds(here("raw_data", "states.rds"))
+
+# Data prep
+df$fips <- sprintf("%05d", df$FIPS)
+
+# Create an additional visualization tool
+df <- df %>%
+  mutate(FIPS = str_pad(as.character(FIPS), width = 5, side = "left", pad = "0"))
+
+# Load FIPS-to-county lookup
+fips_lookup <- read_csv(
+  "https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt",
+  col_names = c("state_abbr", "state_fips", "county_fips", "county_name", "fips_class"),
+  col_types = "ccccc"
+) %>%
+  mutate(FIPS = str_c(state_fips, county_fips)) %>%
+  select(FIPS, county_name, state_abbr)
+
+# Now safe to join
+df_joined <- df %>%
+  left_join(fips_lookup, by = "FIPS") %>%
+  filter(!is.na(county_name)) %>%
+  mutate(
+    civic_opp_rounded_up = round(civic_org_sum, 0),
+    civic_opp_index = ntile(civic_opp_sum_normalized, 5), 
+    civic_opp_percentile = percent_rank(civic_opp_sum_normalized),
+    civic_opp_percentile_label = case_when(
+      civic_opp_percentile >= 0.99 ~ "Top 1%",
+      civic_opp_percentile >= 0.95 ~ "Top 5%",
+      civic_opp_percentile >= 0.90 ~ "Top 10%",
+      civic_opp_percentile >= 0.75 ~ "Top 25%",
+      civic_opp_percentile >= 0.50 ~ "Top 50%",
+      civic_opp_percentile >= 0.25 ~ "Bottom 50%",
+      civic_opp_percentile >= 0.10 ~ "Bottom 25%",
+      civic_opp_percentile >= 0.05 ~ "Bottom 10%",
+      TRUE ~ "Bottom 5%"
+    )
+  )  %>%
+  # Now arrange by percentile (from highest to lowest)
+  arrange(desc(civic_opp_percentile))
+
+# Render the table of counties
+datatable(
+  df_joined %>% 
+    select(
+      State = state_abbr, 
+      County = county_name, 
+      `Civic Orgs per 1k` = civic_opp_rounded_up, 
+      `Civic Opportunity Index (1-5)` = civic_opp_index, 
+      `Civic Opportunity Percentile` = civic_opp_percentile_label
+    ),
+  rownames = FALSE, 
+  options = list(dom = 'Bfrtip', buttons = c('csv'))
+)
+
+```

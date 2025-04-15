@@ -3,7 +3,6 @@ title: "About"
 format: html
 ---
 
-This dashboard is powered by the **MapAgora** datasets, created from IRS Form 990 data and large-scale digital trace classification.
+This dashboard is powered by the MapAgora datasets, derived from IRS tax returns of tax-exempt organizations and their websites.
 
-- Author: Jae Yeon Kim and Milan de Vries
-- Source: [MapAgora GitHub](https://github.com/snfagora/MapAgora)
+- Developer and maintainer: Jae Yeon Kim and Milan de Vries
