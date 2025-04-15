@@ -1,5 +1,5 @@
 ---
-title: "Similar counties"
+title: "Civic table"
 format: html
 execute:
   echo: false
@@ -40,7 +40,6 @@ df_joined <- df %>%
   left_join(fips_lookup, by = "FIPS") %>%
   filter(!is.na(county_name)) %>%
   mutate(
-    civic_opp_rounded_up = round(civic_org_sum, 0),
     civic_opp_index = ntile(civic_opp_sum_normalized, 5), 
     civic_opp_percentile = percent_rank(civic_opp_sum_normalized),
     civic_opp_percentile_label = case_when(
@@ -64,7 +63,7 @@ datatable(
     select(
       State = state_abbr, 
       County = county_name, 
-      `Civic Orgs per 1k` = civic_opp_rounded_up, 
+      `Civic Opportunity # per 1k` = civic_opp_sum_normalized, 
       `Civic Opportunity Index (1-5)` = civic_opp_index, 
       `Civic Opportunity Percentile` = civic_opp_percentile_label
     ),

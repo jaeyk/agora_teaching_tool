@@ -1,8 +1,23 @@
 ---
-title: "MapAgorg Dashboard"
+title: ""
 format: html
 ---
 
-# Welcome
+# Welcome to the MapAgora Dashboard 🗺️
 
 This dashboard visualizes the geography of civic infrastructure and opportunity in the United States.
+
+## Motivation 🚀
+
+In today's world, most people are disconnected from the democratic processes that allow us to engage, deliberate, and make decisions together. Civil society organizations are scattered, and opportunities for meaningful civic participation are often inaccessible.
+
+We’re mapping the **modern agora** — a visual map of where and how people can engage with each other in the democratic process. By mapping **civic opportunities**, we aim to strengthen democracy by identifying areas that need more attention and support. 
+
+### 📊 Civic Opportunity Dataset Construction 🛠️
+
+To create our datasets on the landscape of civic opportunity in America, we begin with the IRS Exempt Organizations Business Master File — a comprehensive registry of all tax-exempt organizations in the U.S. This registry serves as our sampling frame and includes a broad range of nonprofit entities, even those that don’t file annual tax returns. Next, we link IRS administrative records with data scraped directly from organization websites. Using a combination of machine learning and natural language processing, we identify the type of each organization and whether it provides civic opportunities such as volunteering, membership, public events, and engaging in civic or political action. 
+
+## References 📚
+
+1. [**Mapping the Modern Agora**](https://snfagora.jhu.edu/project/mapping-the-modern-agora/): SNF Agora Institute, Johns Hopkins University 
+2. [**The Unequal Landscape of Civic Opportunity in America**](https://www.nature.com/articles/s41562-023-01743-1?utm_campaign=related_content&utm_source=SOCIAL&utm_medium=communities) (Milan de Vries, Jae Yeon Kim, and Hahrie Han) *Nature Human Behaviour*, Online First in November 2023 \[[replication](https://github.com/snfagora/map_civic_opportunity/tree/main)\] [\[supplementary materials\]](https://static-content.springer.com/esm/art%3A10.1038%2Fs41562-023-01743-1/MediaObjects/41562_2023_1743_MOESM1_ESM.pdf) [\[preprint\]](https://snfagora.jhu.edu/wp-content/uploads/2021/06/de_Vries_Kim_Han_nhb_2023_preprint.pdf)
