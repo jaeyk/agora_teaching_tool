@@ -1,0 +1,16 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "MapAgorg Dashboard",
+    "section": "",
+    "text": "Welcome\nThis dashboard visualizes the geography of civic infrastructure and opportunity in the United States."
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "This dashboard is powered by the MapAgora datasets, derived from IRS tax returns of tax-exempt organizations and their websites.\n\nDeveloper and maintainer: Jae Yeon Kim and Milan de Vries"
+  }
+]
