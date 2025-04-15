@@ -5,4 +5,4 @@ format: html
 
 This dashboard is powered by the MapAgora datasets, derived from IRS tax returns of tax-exempt organizations and their websites.
 
-- Developer and maintainer: Jae Yeon Kim and Milan de Vries
+- Developer and maintainer: [Jae Yeon Kim](https://jaeyk.github.io/) and [Milan de Vries](https://snfagora.jhu.edu/person/milan-de-vries/)
