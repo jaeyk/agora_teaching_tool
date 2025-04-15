@@ -36,7 +36,7 @@ echo "Pushing changes to GitHub..."
 git push
 
 # Output the GitHub Pages URL
-echo "Your GitHub Pages site is now live at:"
-echo "https://your-username.github.io/your-repository-name/"
+echo "GitHub Pages site is now live at:"
+echo "https://snfagora.github.io/agora_dashboard/"
 
 # End of script
