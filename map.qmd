@@ -122,11 +122,11 @@ map1 <- leaflet(map_data_civic, options = leafletOptions(minZoom = 3, zoomContro
       "<b>{NAMELSAD}</b><br/>
       Civic Opportunity Index: {civic_opp_index}<br/>
       Civic Opportunity Percentile: {civic_opp_percentile_label}<br/>
-      Civic Opportunity Orgs: {civic_org_sum}<br/>
-      Membership Orgs: {membership_sum}<br/>
-      Event Orgs: {events_sum}<br/>
-      Volunteering Orgs: {volunteer_sum}<br/>
-      Take Action Orgs: {take_action_sum}"
+      Civic Opportunity Organizations #: {civic_org_sum}<br/>
+      Membership Organizations #: {membership_sum}<br/>
+      Event Organizations #: {events_sum}<br/>
+      Volunteering Organizations #: {volunteer_sum}<br/>
+      Take Action Organizations #: {take_action_sum}"
   ),
   label = ~NAMELSAD) %>%
   addLegend(pal = pal_green, values = map_data_civic$civic_opp_category,
