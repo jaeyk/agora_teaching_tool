@@ -53,8 +53,6 @@ aggregated_data <- top3_orgs %>%
     names_glue = "{rank_label}_org_{.value}"
   ) 
 
-aggregated_data$primary_org_pct<- glue("{round(aggregated_data$primary_org_pct, 2)*100}%")
-
 # Join data
 map_data_civic <- left_join(counties, civic_data, by = c("GEOID" = "fips")) %>%
   st_as_sf() %>%
