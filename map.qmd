@@ -96,8 +96,9 @@ leaflet(map_data, options = leafletOptions(minZoom = 3, zoomControl = TRUE)) %>%
     fillOpacity = 0.7,
     color = "#BDBDC1",
     weight = 1,
-    popup = ~glue("<b>{NAMELSAD}</b><br/>
-                   Social/Religious Org Percentage: {round(so_or_re_pct * 100, 2)}%"),
+   popup = ~glue("<b>{NAMELSAD}</b><br/>
+               Religious/Fraternal Civic Opportunity Org %: {round(so_or_re_pct * 100, 2)}%")
+,
     label = ~paste0("County: ", NAMELSAD),
     group = "Social/Religious Org Percentage"
   ) %>%
