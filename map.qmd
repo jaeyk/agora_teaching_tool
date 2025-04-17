@@ -97,6 +97,17 @@ map1 <- leaflet(map_data_civic, options = leafletOptions(minZoom = 3, zoomContro
   setView(lng = -95.7129, lat = 37.0902, zoom = 4)
 
 # Create map 2
+
+org_levels <- c(
+  "Religious", "Social & Fraternal", "Youth", "Unions", "Healthcare",
+  "Economic", "Education", "Research & Think Tank", "Hobby & Sports", 
+  "Community", "Foundations", "Professional", "Arts & Cultural", 
+  "Housing", "Political"
+)
+
+map_data_orgtype <- map_data_orgtype %>%
+  mutate(primary_org_type = factor(primary_org_type, levels = org_levels))
+
 map2 <- leaflet(map_data_orgtype, options = leafletOptions(minZoom = 3, zoomControl = TRUE)) %>%
   addProviderTiles("CartoDB.Positron") %>%
   addPolygons(
