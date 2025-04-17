@@ -61,7 +61,7 @@ map_data_orgtype <- left_join(counties, aggregated_data, by = c("GEOID" = "fips"
   st_simplify(dTolerance = 0.01)
 
 # Define color palettes
-pal_green <- colorFactor(c("#D0F1C7", "#4CAF50", "#006400"), domain = map_data$civic_opp_category)
+pal_green <- colorFactor(c("#D0F1C7", "#4CAF50", "#006400"), domain = map_data_civic$civic_opp_category)
 
 pal_primary_org <- colorFactor(
   palette = c(
