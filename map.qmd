@@ -139,12 +139,6 @@ map2 <- leaflet(map_data_orgtype, options = leafletOptions(minZoom = 3, zoomCont
   ) %>%
   addLegend(pal = pal_primary_org, values = map_data_orgtype$primary_org_type,
             title = "Primary Organization Type", position = "bottomright") %>%
-  addLegend(
-    pal = pal_primary_org,
-    values = na.omit(map_data_orgtype$primary_org_type),
-    title = "Primary Organization Type",
-    position = "bottomright"
-  ) %>%
   setView(lng = -95.7129, lat = 37.0902, zoom = 4)
 ```
 
