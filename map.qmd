@@ -193,15 +193,8 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       </div>"
     ),
     label = ~NAMELSAD,
-    highlightOptions = highlightOptions(
-      weight = 3,
-      color = "#666",
-      dashArray = "",
-      fillOpacity = 0.7,
-      bringToFront = TRUE
-    ),
     group = "Civic Opportunity Counts"
-    ) %>%
+  ) %>%
   
   # Add Primary Organization Type layer
   addPolygons(
@@ -230,15 +223,8 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       </div>"
     ),
     label = ~NAMELSAD,
-    highlightOptions = highlightOptions(
-      weight = 3,
-      color = "#666",
-      dashArray = "",
-      fillOpacity = 0.7,
-      bringToFront = TRUE
-    ), 
     group = "Primary Organization Type"
-    ) %>%
+  ) %>%
   
  # Modified legend additions with group attributes
   addLegend(
