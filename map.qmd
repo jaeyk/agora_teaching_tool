@@ -1,33 +1,68 @@
 ---
 title: "Civic Opportunity Map"
-format: html
+format: 
+  html:
+    # Leaflet-specific options
+    leaflet:
+      center: [37.0902, -95.7129]  # Latitude and Longitude for the US center
+      zoom: 4                     # Initial zoom level
+      options:
+        minZoom: 3                # Minimum zoom level
+        zoomControl: true         # Enable zoom controls
 execute:
   echo: false
   warning: false
   message: false
 ---
 
-```{r}
+```{r setup, include=FALSE}
 # Load necessary packages
 if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
-pacman::p_load(leaflet, glue, sf, tigris, tidyverse, here, htmlwidgets, viridis, RColorBrewer, htmltools)
+pacman::p_load(
+  leaflet, glue, sf, tigris, tidyverse, here, htmlwidgets, viridis, 
+  RColorBrewer, htmltools
+)
 
-# Load and prepare data
-civic_data <- read.csv(here::here("raw_data", "cnty_counts_cov.csv"))
-civic_data$fips <- sprintf("%05d", civic_data$FIPS)
+# Set a consistent theme for plots (if needed)
+theme_set(theme_minimal())
+```
 
-counties <- readr::read_rds(here::here("raw_data", "counties.rds")) %>% st_transform(4326)
-states <- readr::read_rds(here::here("raw_data", "states.rds")) %>% st_transform(4326)
+```{r}
+# Load and prepare civic opportunity data
+civic_data <- tryCatch({
+  read.csv(here::here("raw_data", "cnty_counts_cov.csv")) %>%
+    mutate(fips = sprintf("%05d", FIPS))  # Ensure FIPS codes are 5 digits
+}, error = function(e) {
+  stop("Error loading civic opportunity data: ", e$message)
+})
 
-# Load civic org type data
-org_type_data <- read.csv(here::here("raw_data", "cnty_civic_org_type.csv"))
+# Load spatial data for counties and states
+counties <- tryCatch({
+  readr::read_rds(here::here("raw_data", "counties.rds")) %>%
+    st_transform(4326)
+}, error = function(e) {
+  stop("Error loading counties data: ", e$message)
+})
 
-# Aggregate primary org type
+states <- tryCatch({
+  readr::read_rds(here::here("raw_data", "states.rds")) %>%
+    st_transform(4326)
+}, error = function(e) {
+  stop("Error loading states data: ", e$message)
+})
+
+# Load and aggregate organization type data
+org_type_data <- tryCatch({
+  read.csv(here::here("raw_data", "cnty_civic_org_type.csv"))
+}, error = function(e) {
+  stop("Error loading organization type data: ", e$message)
+})
+
+# Aggregate primary organization type
 top3_orgs <- org_type_data %>%
   filter(!is.na(class)) %>%
   group_by(FIPS, class) %>%
   summarise(freq = sum(freq, na.rm = TRUE), .groups = "drop") %>%
-  
   group_by(FIPS) %>%
   mutate(
     total_freq = sum(freq),
@@ -51,14 +86,15 @@ aggregated_data <- top3_orgs %>%
     names_from = rank_label,
     values_from = c(class, pct),
     names_glue = "{rank_label}_org_{.value}"
-  ) 
+  )
 
-# Join data
-map_data_civic <- left_join(counties, civic_data, by = c("GEOID" = "fips")) %>%
+# Join civic data with counties
+map_data_civic <- counties %>%
+  left_join(civic_data, by = c("GEOID" = "fips")) %>%
   st_as_sf() %>%
   mutate(
     civic_opp_category = ntile(civic_opp_sum_normalized, 5),
-    civic_opp_index = civic_opp_category,  # Needed for popup
+    civic_opp_index = civic_opp_category,
     civic_opp_percentile = percent_rank(civic_opp_sum_normalized),
     civic_opp_percentile_label = case_when(
       civic_opp_percentile >= 0.99 ~ "Top 1%",
@@ -72,67 +108,43 @@ map_data_civic <- left_join(counties, civic_data, by = c("GEOID" = "fips")) %>%
       TRUE ~ "Bottom 5%"
     )
   ) %>%
-  st_simplify(dTolerance = 0.01) 
-
-aggregated_data$fips <- sprintf("%05d", aggregated_data$FIPS)
-
-map_data_orgtype <- left_join(counties, aggregated_data, by = c("GEOID" = "fips")) %>%
-  st_as_sf() %>%
   st_simplify(dTolerance = 0.01)
 
-map_data_orgtype <- map_data_orgtype %>%
+# Join organization type data with counties
+aggregated_data <- aggregated_data %>%
+  mutate(fips = sprintf("%05d", FIPS))
+
+map_data_orgtype <- counties %>%
+  left_join(aggregated_data, by = c("GEOID" = "fips")) %>%
+  st_as_sf() %>%
+  st_simplify(dTolerance = 0.01) %>%
   mutate(
-    primary_org_class = fct_explicit_na(primary_org_class, na_level = "NA")
+    primary_org_class = factor(
+      primary_org_class, 
+      levels = c(
+        "Religious", "Social & Fraternal", "Youth", "Unions", "Healthcare",
+        "Economic", "Education", "Research & Think Tank", "Hobby & Sports", 
+        "Community", "Foundations", "Professional", "Arts & Cultural", 
+        "Housing", "Political", "NA"
+      )
+    )
   )
 
 # Define color palettes
 pal_green <- colorFactor(c("#D0F1C7", "#4CAF50", "#006400"), domain = map_data_civic$civic_opp_category)
-
-# Step 1: Reorder the factor (as you've done)
-org_levels <- c(
-  "Religious", "Social & Fraternal", "Youth", "Unions", "Healthcare",
-  "Economic", "Education", "Research & Think Tank", "Hobby & Sports", 
-  "Community", "Foundations", "Professional", "Arts & Cultural", 
-  "Housing", "Political", "NA"
-)
-
-org_colors <- c(
-  "darkgreen",    # Religious
-  "gold",         # Social & Fraternal
-  "#FF7F00",      # Youth
-  "#E41A1C",      # Unions
-  "#984EA3",      # Healthcare
-  "#377EB8",      # Economic
-  "#4DAF4A",      # Education
-  "#A65628",      # Research & Think Tank
-  "#F781BF",      # Hobby & Sports
-  "#999999",      # Community
-  "#FFD700",      # Foundations
-  "#1E90FF",      # Professional
-  "#FB9A99",      # Arts & Cultural
-  "#B3DE69",      # Housing
-  "#FF69B4",      # Political
-  "#CCCCCC"       # Missing
-)
-
-# Re-factor to keep all levels, even if not used
-map_data_orgtype <- map_data_orgtype %>%
-  mutate(primary_org_class = factor(primary_org_class, levels = org_levels))
-
 pal_primary_org <- colorFactor(
-  palette = org_colors,
-  domain = org_levels,
-  na.color = "lightgrey"  # Use light grey for NA
+  palette = c(
+    "darkgreen", "gold", "#FF7F00", "#E41A1C", "#984EA3", "#377EB8",
+    "#4DAF4A", "#A65628", "#F781BF", "#999999", "#FFD700", "#1E90FF",
+    "#FB9A99", "#B3DE69", "#FF69B4", "#CCCCCC"
+  ),
+  domain = levels(map_data_orgtype$primary_org_class),
+  na.color = "lightgrey"
 )
 
-# Create map 1
-map1 <- leaflet(map_data_civic, options = leafletOptions(minZoom = 3, zoomControl = TRUE)) %>%
+# Create Civic Opportunity Map
+map1 <- leaflet(map_data_civic) %>%
   addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(
-    data = states,
-    color = "black", weight = 2, fillOpacity = 0, group = "States",
-    options = pathOptions(clickable = FALSE)
-  ) %>%
   addPolygons(
     fillColor = ~pal_green(civic_opp_category),
     fillOpacity = 0.7,
@@ -141,27 +153,17 @@ map1 <- leaflet(map_data_civic, options = leafletOptions(minZoom = 3, zoomContro
     popup = ~glue(
       "<b>{NAMELSAD}</b><br/>
       Civic Opportunity Index: {civic_opp_index}<br/>
-      Civic Opportunity Percentile: {civic_opp_percentile_label}<br/>
-      Civic Opportunity Organizations #: {civic_org_sum}<br/>
-      Membership Organizations #: {membership_sum}<br/>
-      Event Organizations #: {events_sum}<br/>
-      Volunteering Organizations #: {volunteer_sum}<br/>
-      Take Action Organizations #: {take_action_sum}"
-  ),
-  label = ~NAMELSAD) %>%
-  addLegend(pal = pal_green, values = map_data_civic$civic_opp_category,
-            title = "Civic Opportunity Index", position = "bottomright") %>%
-  setView(lng = -95.7129, lat = 37.0902, zoom = 4)
-
-# Create map 2
-
-map2 <- leaflet(map_data_orgtype, options = leafletOptions(minZoom = 3, zoomControl = TRUE)) %>%
-  addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(
-    data = states,
-    color = "black", weight = 2, fillOpacity = 0, group = "States",
-    options = pathOptions(clickable = FALSE)
+      Civic Opportunity Percentile: {civic_opp_percentile_label}"
+    ),
+    label = ~NAMELSAD
   ) %>%
+  addLegend(pal = pal_green, values = ~civic_opp_category, title = "Civic Opportunity Index") %>%
+  fitBounds(lng1 = -125, lat1 = 24, lng2 = -66.9, lat2 = 49)  # Continental US bounding box
+
+
+# Create Organization Type Map
+map2 <- leaflet(map_data_orgtype) %>%
+  addProviderTiles("CartoDB.Positron") %>%
   addPolygons(
     fillColor = ~pal_primary_org(primary_org_class),
     fillOpacity = 0.7,
@@ -169,15 +171,12 @@ map2 <- leaflet(map_data_orgtype, options = leafletOptions(minZoom = 3, zoomCont
     weight = 1,
     popup = ~glue(
       "<b>{NAMELSAD}</b><br/>
-      Primary Organization Type: {primary_org_class} ({round(primary_org_pct * 100, 1)}%)<br/>
-      Secondary Organization Type: {second_org_class} ({round(second_org_pct * 100, 1)}%)<br/>
-      Third Organization Type: {third_org_class} ({round(third_org_pct * 100, 1)}%)"
+      Primary Organization Type: {primary_org_class}"
     ),
     label = ~NAMELSAD
   ) %>%
-  addLegend(pal = pal_primary_org, values = map_data_orgtype$primary_org_class,
-            title = "Type", position = "bottomright") %>%
-  setView(lng = -95.7129, lat = 37.0902, zoom = 4)
+  addLegend(pal = pal_primary_org, values = ~primary_org_class, title = "Primary Organization Type") %>%
+  fitBounds(lng1 = -125, lat1 = 24, lng2 = -66.9, lat2 = 49)  # Continental US bounding box
 ```
 
 <div style="width:100%; height:700px;">
