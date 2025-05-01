@@ -106,6 +106,19 @@ map_data_civic <- counties %>%
   ) %>%
   st_simplify(dTolerance = 0.1)
 
+# Add national and state rankings
+map_data_civic <- map_data_civic %>%
+  group_by(STUSPS) %>%
+  mutate(
+    state_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min"),
+    state_total = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    national_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min"),
+    national_total = n()
+  )
+
 # Join organization type data with counties
 aggregated_data <- aggregated_data %>%
   mutate(fips = sprintf("%05d", FIPS))
@@ -127,7 +140,11 @@ map_data_orgtype <- counties %>%
   )
 
 # Define color palettes
-pal_green <- colorFactor(c("#D0F1C7", "#4CAF50", "#006400"), domain = map_data_civic$civic_opp_category)
+pal_green <- colorFactor(
+  palette = RColorBrewer::brewer.pal(5, "Greens"), 
+  domain = map_data_civic$civic_opp_category
+)
+
 pal_primary_org <- colorFactor(
   palette = c(
     "darkgreen", "gold", "#FF7F00", "#E41A1C", "#984EA3", "#377EB8",
@@ -150,6 +167,16 @@ map_data_orgtype <- map_data_orgtype %>%
 combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE)) %>%
   addProviderTiles("CartoDB.Positron", group = "Base Map") %>%
 
+  addPolygons(
+    data = states,
+    fill = FALSE,
+    weight = 2,
+    color = "#000000",
+    opacity = 0.5,
+    group = "State Boundaries",
+    options = pathOptions(clickable = FALSE)
+  ) %>%
+  
   # Add Civic Opportunity Counts layer
   addPolygons(
     data = map_data_civic,
@@ -159,16 +186,17 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     weight = 1,
     popup = ~glue(
       "<div style='font-size: 13px; line-height: 1.4; max-width: 300px;'>
-        <h4 style='margin-bottom: 6px;'>{NAMELSAD}</h4>
+        <h4 style='margin-bottom: 6px;'>{NAMELSAD}, {STUSPS}</h4>
     
-        <p><strong>Civic Opportunity Index:</strong> {civic_opp_index} ({civic_opp_percentile_label})</p>
         <p><strong>Total Civic Opportunity Orgs:</strong> {civic_org_sum} of {n} nonprofits</p>
-    
+        <p><strong>State Rank:</strong> {scales::comma(state_rank)} / {scales::comma(state_total)}</p>
+        <p><strong>National Rank:</strong> {scales::comma(national_rank)} / {scales::comma(national_total)}</p>
+        
         <p><u><strong>Civic Opportunity Types (counts):</strong></u><br/>
-       Volunteer Org #: {volunteer_sum}<br/>
-       Membership Org #: {membership_sum}<br/>
-       Take Action Org #: {take_action_sum}<br/>
-       Events Org #: {events_sum}</p>
+       Volunteer organization #: {volunteer_sum}<br/>
+       Membership organization #: {membership_sum}<br/>
+       Take Action organization #: {take_action_sum}<br/>
+       Public events organization #: {events_sum}</p>
     
         <p><u><strong>Sociodemographic Indicators (%):</strong></u><br/>
        Poverty: {round(POV150, 1)}%<br/>
@@ -193,7 +221,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     weight = 1,
     popup = ~glue(
       "<div style='font-size: 13px; line-height: 1.4; max-width: 300px;'>
-        <h4 style='margin-bottom: 6px;'>{NAMELSAD}</h4>
+        <h4 style='margin-bottom: 6px;'>{NAMELSAD}, {STUSPS}</h4>
     
         <p><u><strong>Top Civic Opportunity Organiztion Types:</strong></u><br/>
            1. {primary_org_class} ({round(primary_org_pct * 100, 1)}%)<br/>
@@ -232,12 +260,12 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     className = "info legend org-legend"    # Added class for identification
   ) %>%
   
-  # Add layer controls
+   # Add layer toggle and hide org layer initially
   addLayersControl(
     baseGroups = c("Civic Opportunity Counts", "Primary Organization Type"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
-  
+  hideGroup("Primary Organization Type") %>%  # hide org layer at start
   htmlwidgets::onRender("
     function(el, x) {
       var map = this;
@@ -246,23 +274,25 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
   
       function updateLegends(activeLayer) {
         if (activeLayer === 'Civic Opportunity Counts') {
-          if (civicLegend) civicLegend.style.display = 'block';
-          if (orgLegend) orgLegend.style.display = 'none';
+          civicLegend.style.display = 'block';
+          orgLegend.style.display = 'none';
         } else if (activeLayer === 'Primary Organization Type') {
-          if (civicLegend) civicLegend.style.display = 'none';
-          if (orgLegend) orgLegend.style.display = 'block';
+          civicLegend.style.display = 'none';
+          orgLegend.style.display = 'block';
         }
       }
   
-      setTimeout(function() {
+      // Wait for map to initialize
+      map.whenReady(function() {
         updateLegends('Civic Opportunity Counts');
-      }, 100);
+      });
   
       map.on('baselayerchange', function(e) {
         updateLegends(e.name);
       });
     }
   ") %>%
+  # Add a sidebar for displaying popup content  
   htmlwidgets::onRender("
     function(el, x) {
       var map = this;
