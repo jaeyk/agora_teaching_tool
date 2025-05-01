@@ -281,5 +281,8 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
 ```
 
 ```{r, echo = FALSE, fig.width = 20, fig.height = 16}
-leaflet::leafletOutput("combined_map", width = "100%", height = "100vh")
+htmltools::tags$div(
+  style = "width: 100%; height: 100%;",
+  combined_map
+)
 ```
