@@ -195,7 +195,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       "<div style='font-size: 13px; line-height: 1.4; max-width: 300px;'>
         <h4 style='margin-bottom: 6px;'>{NAMELSAD}</h4>
     
-        <p><u><strong>Top Civic Organization Types:</strong></u><br/>
+        <p><u><strong>Top Civic Opportunity Organiztion Types:</strong></u><br/>
            1. {primary_org_class} ({round(primary_org_pct * 100, 1)}%)<br/>
            2. {second_org_class} ({round(second_org_pct * 100, 1)}%)<br/>
            3. {third_org_class} ({round(third_org_pct * 100, 1)}%)</p>
@@ -211,7 +211,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       </div>"
     ),
     label = ~NAMELSAD,
-    group = "Primary Organization Type"
+    group = "Organization Type"
   ) %>%
   
  # Modified legend additions with group attributes
