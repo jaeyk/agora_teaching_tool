@@ -125,24 +125,65 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="welcome-to-the-mapagora-dashboard" class="level1">
-<h1>Welcome to the MapAgora Dashboard 🗺️</h1>
-<p>This dashboard visualizes the geography of civic infrastructure and opportunity in the United States.</p>
-<section id="motivation" class="level2">
-<h2 class="anchored" data-anchor-id="motivation">Motivation 🚀</h2>
-<p>In today’s world, most people are disconnected from the democratic processes that allow us to engage, deliberate, and make decisions together. Civil society organizations are scattered, and opportunities for meaningful civic participation are often inaccessible.</p>
-<p>We’re mapping the <strong>modern agora</strong> — a visual map of where and how people can engage with each other in the democratic process. By mapping <strong>civic opportunities</strong>, we aim to strengthen democracy by identifying areas that need more attention and support.</p>
+<section id="mapagora-dashboard" class="level1">
+<h1>MapAgora Dashboard</h1>
+<p>Welcome to the <strong>MapAgora Dashboard</strong>, an interactive site that visualizes the availability, composition, and equity of civic opportunities across U.S. counties. This dashboard is part of the <em>Mapping the Modern Agora (MMA)</em> project, hosted at the SNF Agora Institute at Johns Hopkins University, which systematically measures civic infrastructure using large-scale administrative and digital trace data.</p>
+<section id="motivation" class="level3">
+<h3 class="anchored" data-anchor-id="motivation">Motivation 🚀</h3>
+<p>Today, most people are disconnected from the democratic processes that allow us to engage, deliberate, and make decisions together. Civil society organizations are scattered, and opportunities for meaningful civic participation are often inaccessible.</p>
+<p>We’re mapping the modern agora — a visual map of where and how people can engage with each other in the democratic process. By mapping civic opportunities, we aim to strengthen democracy by identifying areas that need more attention and support.</p>
+</section>
 <section id="civic-opportunity-dataset-construction" class="level3">
-<h3 class="anchored" data-anchor-id="civic-opportunity-dataset-construction">📊 Civic Opportunity Dataset Construction 🛠️</h3>
-<p>To create our datasets on the landscape of civic opportunity in America, we begin with the IRS Exempt Organizations Business Master File — a comprehensive registry of all tax-exempt organizations in the U.S. This registry serves as our sampling frame and includes a broad range of nonprofit entities, even those that don’t file annual tax returns. Next, we link IRS administrative records with data scraped directly from organization websites. Using a combination of machine learning and natural language processing, we identify the type of each organization and whether it provides civic opportunities such as volunteering, membership, public events, and engaging in civic or political action.</p>
+<h3 class="anchored" data-anchor-id="civic-opportunity-dataset-construction">📊 Civic Opportunity Dataset Construction 🛠</h3>
+<p>To create our datasets on the landscape of civic opportunity in America, we begin with the IRS Exempt Organizations Business Master File — a comprehensive registry of all tax-exempt organizations in the U.S. This registry serves as our sampling frame and includes a broad range of nonprofit entities, even those that don’t file annual tax returns.</p>
+<p>Next, we link IRS administrative records with data scraped directly from organization websites. Using a combination of machine learning and natural language processing, we identify the type of each organization and whether it provides civic opportunities such as volunteering, membership, public events, and engaging in civic or political action.</p>
+<p>The resulting datasets cover over <strong>1.3 million de-identified nonprofits</strong> and are aggregated at the ZIP code and county levels. Each county is scored along a five-point <strong>Civic Opportunity Index</strong>, with additional indicators for organizational composition and community demographics.</p>
 </section>
+<section id="about-this-dashboard" class="level3">
+<h3 class="anchored" data-anchor-id="about-this-dashboard">About This Dashboard</h3>
+<p>This dashboard presents only a <strong>subset</strong> of the full <em>MapAgora</em> datasets. It includes:</p>
+<ul>
+<li><strong>County-level aggregates</strong> of civic opportunity counts and organizational types<br>
+</li>
+<li><strong>Interactive visualizations</strong> of these county-level measures</li>
+</ul>
+<p><strong>Explore the Dashboard</strong></p>
+<ul>
+<li>🗺️ <a href="https://snfagora.github.io/agora_dashboard/map.html"><strong>Interactive Map</strong></a>: View county-level civic opportunity scores, see how each place ranks, and examine the types of organizations driving civic access.<br>
+</li>
+<li>📋 <a href="https://snfagora.github.io/agora_dashboard/table.html"><strong>Interactive Table</strong></a>: Search, filter, and sort civic opportunity indicators across all U.S. counties, with comparisons to state and national benchmarks.</li>
+</ul>
+<p><strong>⚠️ Important Note</strong></p>
+<p>It does <strong>not</strong> include either the full <strong>de-identified organization-level dataset</strong> of 1.3M+ nonprofits 🏢 or the <strong>ZIP code–level aggregates</strong> 📮. This dashboard is limited to <strong>county-level data only</strong> 🗺️.</p>
+<p>For ZIP-level data and detailed metadata on individual organizations, please refer to the full data release 📂.</p>
 </section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References 📚</h2>
-<ol type="1">
-<li><a href="https://snfagora.jhu.edu/project/mapping-the-modern-agora/"><strong>Mapping the Modern Agora</strong></a>: SNF Agora Institute, Johns Hopkins University</li>
-<li><a href="https://www.nature.com/articles/s41562-023-01743-1?utm_campaign=related_content&amp;utm_source=SOCIAL&amp;utm_medium=communities"><strong>The Unequal Landscape of Civic Opportunity in America</strong></a> (Milan de Vries, Jae Yeon Kim, and Hahrie Han) <em>Nature Human Behaviour</em>, Online First in November 2023 [<a href="https://github.com/snfagora/map_civic_opportunity/tree/main">replication</a>] <a href="https://static-content.springer.com/esm/art%3A10.1038%2Fs41562-023-01743-1/MediaObjects/41562_2023_1743_MOESM1_ESM.pdf">[supplementary materials]</a> <a href="https://snfagora.jhu.edu/wp-content/uploads/2021/06/de_Vries_Kim_Han_nhb_2023_preprint.pdf">[preprint]</a></li>
-</ol>
+<section id="data-access-and-paper" class="level3">
+<h3 class="anchored" data-anchor-id="data-access-and-paper">Data Access and Paper</h3>
+<ul>
+<li><strong>Dataset 1</strong>: organization-level dataset of de-identified nonprofit organizations<br>
+</li>
+<li><strong>Dataset 2</strong>: Aggregated civic opportunity counts at the ZIP code and county levels</li>
+<li><strong>Dataset 3</strong>: Aggregated organizational type breakdowns at the ZIP code and county levels</li>
+</ul>
+<p>The full datasets, along with documentation, are available via:</p>
+<ul>
+<li><p>📂 <a href="https://github.com/snfagora/american_civic_opportunity_datasets">GitHub Repository</a><br>
+</p></li>
+<li><p>📊 <a href="https://doi.org/10.7910/DVN/IRCA7C">Harvard Dataverse (archived release)</a></p></li>
+<li><p>📄 Data Paper: <em>MapAgora, Civic Opportunity Datasets for the Study of American Local Politics and Public Policy</em> (Jae Yeon Kim, Milan de Vries, and Hahrie Han) — soon to be released.</p></li>
+</ul>
+</section>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References 📚</h3>
+<ul>
+<li><p><em>The Mapping the Modern Agora</em> concept paper:<br>
+<a href="https://journals.sagepub.com/doi/full/10.1177/00027162221077471">“Civil Society, Realized: Equipping the Mass Public to Express Choice and Negotiate Power.”</a><br>
+<em>(Hahrie Han and Jae Yeon Kim)</em> — <em>The ANNALS of the American Academy of Political and Social Science</em>, 2022, 699(1), 175–185 (co-lead authors)</p></li>
+<li><p><em>The Mapping the Modern Agora</em> empirical paper:<br>
+<a href="https://www.nature.com/articles/s41562-023-01743-1?utm_campaign=related_content&amp;utm_source=SOCIAL&amp;utm_medium=communities">“The Unequal Landscape of Civic Opportunity in America.”</a><br>
+<em>(Milan de Vries, Jae Yeon Kim, and Hahrie Han)</em> — <em>Nature Human Behaviour</em>, Online First in November 2023<br>
+<a href="https://github.com/snfagora/map_civic_opportunity/tree/main">[replication]</a> <a href="https://static-content.springer.com/esm/art%3A10.1038%2Fs41562-023-01743-1/MediaObjects/41562_2023_1743_MOESM1_ESM.pdf">[supplementary materials]</a></p></li>
+</ul>
 
 
 </section>
