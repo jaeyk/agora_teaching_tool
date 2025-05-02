@@ -655,7 +655,7 @@ html, body {
 
 .layout {
   display: flex; !important;
-  flex-direction: column !important; 
+  flex-direction: row; 
   min-height: 1200px;
   height: 100%;
 }
