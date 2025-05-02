@@ -578,7 +578,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       }
 
       map.whenReady(function() {
-        updateLegends('Civic Opportunity Counts');
+        updateLegends('Primary Organization Type');  // matches the default visible group
       });
 
       map.on('baselayerchange', function(e) {
