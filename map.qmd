@@ -277,9 +277,14 @@ org_colors <- pal_primary_org(levels(map_data_orgtype$primary_org_class))
 names(org_colors) <- levels(map_data_orgtype$primary_org_class)
 
 generate_orgtype_bars <- function(df) {
+  county_name <- unique(df$NAMELSAD)[1]
+  state_abbr <- unique(df$STUSPS)[1]
+
   paste0(
     "<div style='font-family:sans-serif; font-size:13px; max-width:300px;'>",
-    "<strong>Civic Organization Breakdown</strong><br/><small>Colored bar = county share, red line = national share</small><br/>",
+    glue::glue("<h4 style='margin-bottom:6px;'>{county_name}, {state_abbr}</h4>"),
+    "<strong>Civic Opportunity Organization Breakdown</strong><br/>",
+    "<small>Colored bar = county share, red line = national share</small><br/>",
     paste(
       purrr::map_chr(1:nrow(df), function(i) {
         cls <- df$class[i]
@@ -566,7 +571,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       var map = this;
       var civicLegend = document.querySelector('.civic-legend');
       var orgLegend = document.querySelector('.org-legend');
-
+      // Function to update legends based on the active layer
       function updateLegends(activeLayer) {
         if (activeLayer === 'Civic Opportunity Counts') {
           civicLegend.style.display = 'block';
@@ -576,11 +581,11 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
           orgLegend.style.display = 'block';
         }
       }
-
+      // Initialize legends based on the default layer
       map.whenReady(function() {
-        updateLegends('Primary Organization Type');  // matches the default visible group
+        updateLegends('Civic Opportunity Counts');
       });
-
+      // Update legends when the base layer changes
       map.on('baselayerchange', function(e) {
         updateLegends(e.name);
       });
@@ -619,6 +624,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
 ```
 
 ```{r, echo = FALSE, fig.width = 20, fig.height = 20}
+# Render the map with a sidebar
 htmltools::browsable(
   htmltools::tagList(
     tags$style(HTML("
