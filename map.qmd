@@ -277,12 +277,10 @@ org_colors <- pal_primary_org(levels(map_data_orgtype$primary_org_class))
 names(org_colors) <- levels(map_data_orgtype$primary_org_class)
 
 generate_orgtype_bars <- function(df) {
-  county_name <- unique(df$NAMELSAD)[1]
-  state_abbr <- unique(df$STUSPS)[1]
 
   paste0(
     "<div style='font-family:sans-serif; font-size:13px; max-width:300px;'>",
-    glue::glue("<h4 style='margin-bottom:6px;'>{county_name}, {state_abbr}</h4>"),
+    glue::glue("<h4 style='margin-bottom:6px;'>{NAMELSAD}, {STUSPS}</h4>"),
     "<strong>Civic Opportunity Organization Breakdown</strong><br/>",
     "<small>Colored bar = county share, red line = national share</small><br/>",
     paste(
@@ -332,28 +330,36 @@ demographic_bar <- function(label, value) {
 org_type_data <- read.csv(here::here("raw_data", "cnty_civic_org_type.csv")) %>%
   mutate(fips = sprintf("%05d", FIPS))
 
+county_info <- map_data_civic %>%
+  st_drop_geometry() %>%
+  select(county = NAMELSAD, STUSPS)
+
+# Load map data for counties
 county_names <- map_data_civic %>%
   st_drop_geometry() %>%
-  select(fips = GEOID, county = NAMELSAD)
+  select(fips = GEOID, county = NAMELSAD, STUSPS)
 
+# Join with county names
 org_type_data <- org_type_data %>%
   left_join(county_names, by = "fips") %>%
   filter(!is.na(class))
 
 # Step 2: County and national pct
 org_type_pct <- org_type_data %>%
-  group_by(county, class) %>%
+  group_by(county, STUSPS, class) %>%
   summarise(freq = sum(freq, na.rm = TRUE), .groups = "drop") %>%
-  group_by(county) %>%
+  group_by(county, STUSPS) %>%
   mutate(county_total = sum(freq), county_pct = freq / county_total) %>%
   ungroup()
 
+# Calculate national percentages
 national_pct <- org_type_pct %>%
   group_by(class) %>%
   summarise(national_total = sum(freq), .groups = "drop") %>%
   mutate(national_pct = national_total / sum(national_total)) %>%
   select(class, national_pct)
 
+# Join county and national percentages
 org_type_pct <- org_type_pct %>%
   left_join(national_pct, by = "class")
 
@@ -375,8 +381,15 @@ org_color_lookup <- setNames(pal_colors, org_levels)
 
 # Step 4: Generate bar chart-style HTML
 generate_orgtype_bars <- function(df) {
+  # Ensure only one row per class to avoid duplicates
+  df <- df %>% distinct(class, .keep_all = TRUE)
+
+  county_name <- unique(df$county)[1]
+  state_abbr <- unique(df$STUSPS)[1]
+
   paste0(
     "<div style='font-family:sans-serif; font-size:13px; max-width:300px;'>",
+    glue::glue("<h4 style='margin-bottom:6px;'>{county_name}, {state_abbr}</h4>"),
     "<strong>Civic Opportunity Organization Breakdown</strong><br/><small>Colored bar = county share, red line = national share</small><br/>",
     paste(
       purrr::map_chr(1:nrow(df), function(i) {
@@ -401,7 +414,6 @@ generate_orgtype_bars <- function(df) {
     "</div>"
   )
 }
-
 
 # Step 5: Nest + fallback
 popup_data <- org_type_pct %>%
