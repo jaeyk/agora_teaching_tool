@@ -1,6 +1,10 @@
 ---
-title: "Civic table"
-format: html
+title: "Civic Opportunity Table"
+format:
+  html:
+    page-layout: full
+    self-contained: true  # <-- for reliable local viewing
+    theme: default
 execute:
   echo: false
   warning: false
@@ -9,22 +13,24 @@ execute:
 
 ```{r}
 # Load pkgs
-
 if (!require(pacman)) install.packages("pacman")
-pacman::p_load(leaflet, glue, sf, tigris, tidyverse, here, htmltools, htmlwidgets, DT)
+pacman::p_load(DT, tidyverse, here, htmltools)
 
-# Load data
+# Load civic opportunity data
 df <- read.csv(here("raw_data", "cnty_counts_cov.csv"))
-
-counties <- readr::read_rds(here("raw_data", "counties.rds"))
-states <- readr::read_rds(here("raw_data", "states.rds"))
-
-# Data prep
 df$fips <- sprintf("%05d", df$FIPS)
 
-# Create an additional visualization tool
-df <- df %>%
-  mutate(FIPS = str_pad(as.character(FIPS), width = 5, side = "left", pad = "0"))
+# Load org type data
+org_types <- read.csv(here("raw_data", "cnty_civic_org_type.csv")) %>%
+  mutate(fips = sprintf("%05d", FIPS)) %>%
+  filter(!is.na(class)) %>%
+  group_by(fips, class) %>%
+  summarise(count = sum(freq, na.rm = TRUE), .groups = "drop") %>%
+  group_by(fips) %>%
+  mutate(total = sum(count), pct = round(100 * count / total, 2)) %>%
+  ungroup() %>%
+  select(fips, class, pct) %>%
+  pivot_wider(names_from = class, values_from = pct, values_fill = 0)
 
 # Load FIPS-to-county lookup
 fips_lookup <- read_csv(
@@ -35,12 +41,14 @@ fips_lookup <- read_csv(
   mutate(FIPS = str_c(state_fips, county_fips)) %>%
   select(FIPS, county_name, state_abbr)
 
-# Now safe to join
+# Join and compute columns
 df_joined <- df %>%
+  mutate(FIPS = sprintf("%05d", FIPS)) %>%
   left_join(fips_lookup, by = "FIPS") %>%
+  left_join(org_types, by = c("FIPS" = "fips")) %>%
   filter(!is.na(county_name)) %>%
   mutate(
-    civic_opp_index = ntile(civic_opp_sum_normalized, 5), 
+    civic_opp_index = ntile(civic_opp_sum_normalized, 5),
     civic_opp_percentile = percent_rank(civic_opp_sum_normalized),
     civic_opp_percentile_label = case_when(
       civic_opp_percentile >= 0.99 ~ "Top 1%",
@@ -53,22 +61,102 @@ df_joined <- df %>%
       civic_opp_percentile >= 0.05 ~ "Bottom 10%",
       TRUE ~ "Bottom 5%"
     )
-  )  %>%
-  # Now arrange by percentile (from highest to lowest)
-  arrange(desc(civic_opp_percentile))
+  ) %>%
+  group_by(state_abbr) %>%
+  mutate(state_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min")) %>%
+  ungroup() %>%
+  mutate(national_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min")) %>%
+  select(
+    State = state_abbr,
+    County = county_name,
+    `Civic Opportunity Index` = civic_opp_index,
+    Percentile = civic_opp_percentile_label,
+    `State Rank` = state_rank,
+    `National Rank` = national_rank,
+    `Civic Opportunity Orgs` = civic_org_sum,
+    `Total Nonprofits` = n,
+    `Volunteer N` = volunteer_sum,
+    `Membership N` = membership_sum,
+    `Take Action N` = take_action_sum,
+    `Events N` = events_sum,
+    `Religious %` = Religious,
+    `Social & Fraternal %` = `Social & Fraternal`,
+    `Youth %` = Youth,
+    `Unions %` = Unions,
+    `Healthcare %` = Healthcare,
+    `Economic %` = Economic,
+    `Education %` = Education,
+    `Research & Think Tank %` = `Research & Think Tank`,
+    `Hobby & Sports %` = `Hobby & Sports`,
+    `Community %` = Community,
+    `Foundations %` = Foundations,
+    `Professional %` = Professional,
+    `Arts & Cultural %` = `Arts & Cultural`,
+    `Housing %` = Housing,
+    `Political %` = Political
+  ) %>%
+  arrange(desc(`Civic Opportunity Index`))
 
-# Render the table of counties
-datatable(
-  df_joined %>% 
-    select(
-      State = state_abbr, 
-      County = county_name, 
-      `Civic Opportunity # per 1k` = civic_opp_sum_normalized, 
-      `Civic Opportunity Index (1-5)` = civic_opp_index, 
-      `Civic Opportunity Percentile` = civic_opp_percentile_label
+htmltools::div(
+  style = "width: 100%; overflow-x: auto;",
+  DT::datatable(
+    df_joined,
+    rownames = FALSE,
+    extensions = c('FixedHeader', 'Buttons'),
+    options = list(
+      dom = 'Bfrtip',
+      buttons = list('colvis'),
+      scrollX = TRUE,
+      scrollCollapse = TRUE,
+      fixedHeader = TRUE,
+      pageLength = 25,
+      drawCallback = JS('function() { this.api().columns.adjust(); }'),
+      columnDefs = list(
+        list(className = 'dt-center', targets = "_all"),
+        list(className = 'highlight-civic', targets = 2:11),
+        list(className = 'highlight-type', targets = 12:(ncol(df_joined) - 1))
+      )
     ),
-  rownames = FALSE, 
-  options = list(dom = 'Bfrtip', buttons = c('csv'))
+    filter = "top",
+    class = 'stripe hover nowrap'
+  )
 )
+```
 
+```{=html}
+<style>
+  table.dataTable th, table.dataTable td {
+    white-space: nowrap;
+  }
+</style>
+
+<style>
+  table.dataTable tbody td:first-child,
+  table.dataTable tbody td:nth-child(2),
+  table.dataTable thead th:first-child,
+  table.dataTable thead th:nth-child(2) {
+    background-color: #f1f1f1;
+    font-weight: bold;
+  }
+</style>
+
+<style>
+  .dataTables_wrapper {
+    overflow-x: auto;
+    width: 100% !important;
+  }
+  table.dataTable {
+    width: 100% !important;
+  }
+  body, .main-container, .page-columns {
+    max-width: 100% !important;
+    overflow-x: visible;
+  }
+  .highlight-civic {
+    background-color: #e0f7fa;
+  }
+  .highlight-type {
+    background-color: #fff8e1;
+  }
+</style>
 ```
