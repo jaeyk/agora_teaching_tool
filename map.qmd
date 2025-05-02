@@ -104,7 +104,7 @@ map_data_civic <- counties %>%
       TRUE ~ "Bottom 5%"
     )
   ) %>%
-  st_simplify(dTolerance = 10)
+  st_simplify(dTolerance = 50, preserveTopology = TRUE)
 
 # Add national and state rankings
 map_data_civic <- map_data_civic %>%
@@ -126,7 +126,7 @@ aggregated_data <- aggregated_data %>%
 map_data_orgtype <- counties %>%
   left_join(aggregated_data, by = c("GEOID" = "fips")) %>%
   st_as_sf() %>%
-  st_simplify(dTolerance = 10) %>%
+  st_simplify(dTolerance = 50, preserveTopology = TRUE) %>%
   mutate(
     primary_org_class = factor(
       primary_org_class, 
@@ -192,9 +192,7 @@ generate_civic_index_html <- function(df) {
   <h4 style='margin-bottom:6px;'>{row$NAMELSAD}, {row$STUSPS}</h4>
 
   <strong>Civic Opportunity Index (1–5 scale)</strong>
-  <button onclick=\"this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none';\" style='background:none; border:none; cursor:pointer; font-size:14px;'>❓</button>
   <div style='display:none; font-size:12px; margin-top:4px;'>
-    This index ranks counties from 1 (low) to 5 (high) based on normalized civic opportunity scores. Each organization is scored based on whether it provides volunteering, membership, public events, or take-action opportunities. These four binary indicators (1 if offered, 0 if not) are averaged to create a score between 0 and 1 for each organization. We then sum these scores across all organizations in a county, divide by the county's population size, and split the counties into five equal-sized groups to assign index values.
   </div><br/>
   {index_boxes}
 
@@ -206,7 +204,6 @@ generate_civic_index_html <- function(df) {
   </ul><br/>
 
   <strong>Civic Opportunity Composition (organization counts)</strong>
-  <button onclick=\"this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none';\" style='background:none; border:none; cursor:pointer; font-size:14px;'>❓</button>
   <div style='display:none; font-size:12px; margin-top:4px;'>
     These bars show the number of organizations in each civic opportunity category. Bar lengths are relative to this county’s total civic opportunity organizations.
   </div><br/>
@@ -500,13 +497,21 @@ map_data_civic <- map_data_civic %>%
 #     label = ~paste(NAMELSAD, "Category:", civic_opp_category)
 #   ) %>%
 #   addLegend(
-#     position = "bottomright",
+#     position = "bottomleft",
 #     pal = pal_green,
 #     values = map_data_civic$civic_opp_category,
 #     title = "Test: Civic Opp Category (0–5)"
 #   )
 
 # test_map
+
+# Create the popup HTML for Civic Opportunity Index
+map_data_civic <- map_data_civic %>%
+  select(GEOID, NAMELSAD, STUSPS, civic_opp_category, civic_index_bar_html, geometry)
+
+# Create the popup HTML for Organization Type
+map_data_orgtype <- map_data_orgtype %>%
+  select(GEOID, NAMELSAD, STUSPS, primary_org_class, orgtype_bar_html, geometry)
 
 # Create the combined map
 combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE)) %>%
@@ -549,7 +554,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
 
   # Civic Opportunity Legend
   addLegend(
-    position = "bottomright",
+    position = "bottomleft",
     pal = pal_green,
     values = map_data_civic$civic_opp_category,
     title = "Civic Opportunity Index",
@@ -571,7 +576,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
 
   # Org Type Legend
   addLegend(
-    position = "bottomright",
+    position = "bottomleft",
     pal = pal_primary_org,
     values = map_data_orgtype$primary_org_class,
     title = "Primary Organization Type",
