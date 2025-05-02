@@ -233,14 +233,14 @@ generate_civic_index_html <- function(df) {
     </div>
   </div>
 
-  <strong>Sociodemographic Indicators (%)</strong><br/>
+  <br/><strong>Sociodemographic Indicators (%)</strong><br/>
   {demographic_bar('Poverty', row$POV150)}
   {demographic_bar('Single Parents', row$SNGPNT)}
   {demographic_bar('No High School Diploma', row$NOHSDP)}
   {demographic_bar('Without Broadband', row$BROAD)}
   {demographic_bar('Unemployed', row$UNEMP)}
   {demographic_bar('Non-White Share', row$REMNRTY)}
-</div>
+ </div>
     ")
   })
 }
@@ -497,7 +497,19 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     options = pathOptions(clickable = FALSE)
   ) %>%
 
-  # Civic Opportunity Layer (default visible)
+  # 1. Add the non-default layer *first*
+  addPolygons(
+    data = map_data_orgtype,
+    fillColor = ~pal_primary_org(primary_org_class),
+    fillOpacity = 0.7,
+    color = "#BDBDC1",
+    weight = 1,
+    popup = ~orgtype_bar_html,
+    label = ~NAMELSAD,
+    group = "Primary Organization Type"
+  ) %>%
+  
+  # 2. Add the default Civic Opportunity layer *afterward*
   addPolygons(
     data = map_data_civic,
     fillColor = ~pal_green(civic_opp_category),
@@ -546,7 +558,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     baseGroups = c("Civic Opportunity Counts", "Primary Organization Type"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
-  hideGroup("Primary Organization Type") %>%
+  hideGroup("Primary Organization Type")  # Hide non-default explicitly
 
   # Dynamic legend toggle logic
   htmlwidgets::onRender("
