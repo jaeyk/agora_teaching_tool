@@ -656,10 +656,17 @@ map_data_orgtype <- map_data_orgtype %>% st_set_geometry(NULL)
 htmltools::browsable(
   htmltools::tagList(
     tags$style(HTML("
+    
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 .layout {
   display: flex;
   flex-direction: row;
-  height: 1200px;
+  min-height: 1200px;
+  height: 100%;
 }
 
 #map-container {
