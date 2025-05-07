@@ -7,6 +7,8 @@ website:
     left:
       - text: Home
         href: index.qmd
+      - text: Where to Start
+        href: where_to_start.qmd
       - text: Civic Opportunity Map
         href: map.qmd  
       - text: Civic Opportunity Table

@@ -33,30 +33,6 @@ This dashboard presents only a **subset** of the full *MapAgora* datasets. It in
 - 🗺️ [**Interactive Map**](https://snfagora.github.io/agora_dashboard/map.html): View county-level civic opportunity scores, see how each place ranks, and examine the types of organizations driving civic access.  
 - 📋 [**Interactive Table**](https://snfagora.github.io/agora_dashboard/table.html): Search, filter, and sort civic opportunity indicators across all U.S. counties, with comparisons to state and national benchmarks.
 
-::: {.panel-tabset}
-### 💡 Explore with Questions
-Use the following prompts to guide your exploration:
-
-- What kinds of civic organizations are more common in rural vs. urban counties in your state?
-- Which counties have especially high or low civic opportunity scores? What might explain those patterns?
-- How does your county compare to others nearby—or to the national average?
-- What does this data confirm or challenge about your understanding of civic life in your community or region?
-
-### 🔍 Critically Engage with the Data
-MapAgora offers a scalable and comprehensive map of America’s civic infrastructure—but no dataset is perfect. This dashboard is an invitation to explore, question, and extend what you see.
-
-If you’re working in a specific place, you might:
-- Click into **a few counties** directly on the map,
-- Download the ZIP code–level dataset for **more granular views**, or
-- Use the organization-level dataset to **reconstruct civic opportunity scores at the city level**.
-
-We encourage users to compare what they find here with **external sources** like Google Maps, Yelp, or local directories. This can help surface civic organizations that may not be captured in the dataset—such as **informal neighborhood groups, mutual aid networks, or online communities**.
-
-These comparisons not only highlight what might be missing, but also why—whether due to registration status, online visibility, or organizational disclosure norms.
-
-Engaging with the data in this way helps refine place-based research, enrich local knowledge, and spark new questions about what counts—and what is counted—in civic life.
-:::
-
 **⚠️ Important Note**  
 
 It does **not** include either the full **de-identified organization-level dataset** of 1.7M+ nonprofits 🏢 or the **ZIP code–level aggregates** 📮. This dashboard is limited to **county-level data only** 🗺️.  

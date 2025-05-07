@@ -1,0 +1,37 @@
+---
+title: "Where to Start"
+format: html
+page-layout: full
+---
+
+[⬅️ Back to Dashboard](index.qmd){.btn .btn-outline-primary}
+
+New to MapAgora? This page offers prompts and reflections to help you begin exploring the dashboard and datasets—whether you're curious about your own county or conducting place-based research.
+
+::: {.panel-tabset}
+
+### 💡 Explore with Questions
+
+Use the following prompts to guide your exploration:
+
+- What kinds of civic organizations are more common in rural vs. urban counties in your state?
+- Which counties have especially high or low civic opportunity scores? What might explain those patterns?
+- How does your county compare to others nearby—or to the national average?
+- What does this data confirm or challenge about your understanding of civic life in your community or region?
+
+### 🔍 Critically Engage with the Data
+
+MapAgora offers a scalable and comprehensive map of America’s civic infrastructure—but no dataset is perfect. This dashboard is an invitation to explore, question, and extend what you see.
+
+If you’re working in a specific place, you might:
+- Click into **a few counties** directly on the map,
+- Download the ZIP code–level dataset for **more granular views**, or
+- Use the organization-level dataset to **reconstruct civic opportunity scores at the city level**.
+
+We encourage users to compare what they find here with **external sources** like Google Maps, Yelp, or local directories. This can help surface civic organizations that may not be captured in the dataset—such as **informal neighborhood groups, mutual aid networks, or online communities**.
+
+These comparisons not only highlight what might be missing, but also why—whether due to registration status, online visibility, or organizational disclosure norms.
+
+Engaging with the data in this way helps refine place-based research, enrich local knowledge, and spark new questions about what counts—and what is counted—in civic life.
+
+:::
