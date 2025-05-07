@@ -5,7 +5,7 @@ format: html
 
 # MapAgora Dashboard
 
-Welcome to the **MapAgora Dashboard**, an interactive site that visualizes the availability, composition, and equity of civic opportunities across U.S. counties. This dashboard is part of the *Mapping the Modern Agora (MMA)* project, hosted at the SNF Agora Institute at Johns Hopkins University, which systematically measures civic infrastructure using large-scale administrative and digital trace data.
+Welcome to the **MapAgora Dashboard**, an interactive site that visualizes the availability, composition, and equity of civic opportunities across U.S. counties. This dashboard is part of the [*Mapping the Modern Agora (MMA)*](https://snfagora.jhu.edu/project/mapping-the-modern-agora/) project, hosted at the SNF Agora Institute at Johns Hopkins University, which systematically measures civic infrastructure using large-scale administrative and digital trace data.
 
 ### Motivation 🚀 
 

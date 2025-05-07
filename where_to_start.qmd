@@ -18,7 +18,7 @@ New to MapAgora? This page offers prompts and reflections to help you begin expl
 
 Use the following prompts to guide your exploration:
 
-- What kinds of civic organizations are more common in rural vs. urban counties in your state?
+- What kinds of civic opportunity organizations are more common in rural vs. urban counties in your state?
 - Which counties have especially high or low civic opportunity scores? What might explain those patterns?
 - How does your county compare to others nearby—or to the national average?
 - What does this data confirm or challenge about your understanding of civic life in your community or region?

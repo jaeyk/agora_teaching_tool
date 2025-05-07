@@ -3,6 +3,36 @@ title: "About"
 format: html
 ---
 
+## The MMA Team
+
+Meet the team behind MapAgora.
+
+:::{.grid cols=3}
+
+::: {.text-center}
+![Hahrie Han](images/hahrie.jpeg){width=120px height=120px style="border-radius: 50%;"}
+**Hahrie Han**  
+Director, SNF Agora Institute  
+Professor of Political Science, Johns Hopkins University
+:::
+
+::: {.text-center}
+![Milan de Vries](images/milan.jpg){width=120px height=120px style="border-radius: 50%;"}
+**Milan de Vries**  
+Associate Research Scholar, SNF Agora Institute, Johns Hopkins University
+:::
+
+::: {.text-center}
+![Jae Yeon Kim](https://jaeyk.github.io/profile_alt.png){width=120px height=120px style="border-radius: 50%;"}
+**Jae Yeon Kim**  
+Assistant Research Scientist, SNF Agora Institute, Johns Hopkins University
+Incoming Assistant Professor of Public Policy, UNC-Chapel Hill
+:::
+
+:::
+
+## The Dashbboard Project
+
 This dashboard is powered by the **MapAgora** datasets, which are derived from IRS tax returns of tax-exempt organizations and data scraped from their websites. The goal is to map civic infrastructure across the United States.
 
 - **Developed and maintained by**:  
