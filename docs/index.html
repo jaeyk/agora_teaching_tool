@@ -69,6 +69,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -160,11 +189,161 @@ ul.task-list li input[type="checkbox"] {
 <section id="data-access-and-paper" class="level3">
 <h3 class="anchored" data-anchor-id="data-access-and-paper">Data Access and Paper</h3>
 <ul>
-<li><strong>Dataset 1</strong>: organization-level dataset of de-identified nonprofit organizations<br>
-</li>
-<li><strong>Dataset 2</strong>: Aggregated civic opportunity counts at the ZIP code and county levels</li>
-<li><strong>Dataset 3</strong>: Aggregated organizational type breakdowns at the ZIP code and county levels</li>
+<li><strong>Dataset 1</strong>: organization-level dataset of de-identified nonprofit organizations (1,774,798 rows <span class="math inline">\(\times\)</span> 17 columns)</li>
 </ul>
+<details>
+<summary>
+<strong>Data descriptions</strong>
+</summary>
+<p>This dataset includes 1,774,798 de-identified nonprofit organizations. To protect privacy and reduce the risk of misinterpretation, all identifying information (e.g., organization names and EINs) is removed.</p>
+<p>Each observation includes:</p>
+<ul>
+<li>Unique identifier:
+<ul>
+<li><code>id</code>: a row index used for reference; contains no identifying information.</li>
+</ul></li>
+<li>Geographic identifiers:
+<ul>
+<li><code>state</code>: two-letter state abbreviation<br>
+</li>
+<li><code>city</code>: city name listed in the IRS record<br>
+</li>
+<li><code>FIPS</code>: county FIPS code<br>
+</li>
+<li><code>ZCTA</code>: ZIP Code Tabulation Area</li>
+</ul></li>
+<li>Civic opportunity indicators:
+<ul>
+<li><code>membership</code>, <code>volunteer</code>, <code>events</code>, <code>take_action</code>: binary variables indicating whether the organization provides each type of civic opportunity (1 = provides the opportunity; 0 = does not provide it or information is unavailable)<br>
+</li>
+<li><code>opp_binary</code>: equals 1 if the organization provides at least one civic opportunity; 0 otherwise<br>
+</li>
+<li><code>opp_mean</code>: the mean of the four civic opportunity binary indicators</li>
+</ul></li>
+<li>Organizational type:
+<ul>
+<li><code>predicted</code>: machine-learned classification of the organization (e.g., religious, political, professional)</li>
+</ul></li>
+<li>Address metadata:
+<ul>
+<li><code>is_po</code>: indicates whether the organization lists a P.O. Box as its mailing address (1 = yes, 0 = no)<br>
+</li>
+<li><code>grouping_value</code>: an anonymized internal identifier used to track federated organizations (e.g., national networks with local chapters)</li>
+</ul></li>
+<li>Financial attributes:
+<ul>
+<li><code>asset_amt</code>: total assets<br>
+</li>
+<li><code>income_amt</code>: total income<br>
+</li>
+<li><code>revenue_amt</code>: total revenue</li>
+</ul></li>
+</ul>
+</details>
+<ul>
+<li><strong>Dataset 2</strong>: Aggregated civic opportunity counts at the ZIP code (30,988 rows <span class="math inline">\(\times\)</span> 24 columns) and county levels (3,281 rows <span class="math inline">\(\times\)</span> 24 columns)</li>
+</ul>
+<details>
+<summary>
+<strong>Data descriptions</strong>
+</summary>
+<p>Derived from Dataset 1, this dataset aggregates civic opportunity indicators and socioeconomic characteristics at the ZIP code (ZCTA) and county levels. Each observation corresponds to a geographic unit and includes counts of civic opportunity types, a composite score and index, normalized indicators, and contextual variables from the American Community Survey (ACS).</p>
+<p>Each observation includes:</p>
+<ul>
+<li>Geographic identifiers:
+<ul>
+<li><code>state</code>: two-letter state abbreviation<br>
+</li>
+<li><code>FIPS</code>: county FIPS code<br>
+</li>
+<li><code>ZCTA</code>: ZIP Code Tabulation Area</li>
+</ul></li>
+<li>Organizational counts:
+<ul>
+<li><code>n</code>: total nonprofit organizations<br>
+</li>
+<li><code>civic_org_sum</code>: total civic opportunity organizations<br>
+</li>
+<li><code>membership_sum</code>: total organizations providing membership opportunities<br>
+</li>
+<li><code>volunteer_sum</code>: total organizations providing volunteer opportunities<br>
+</li>
+<li><code>events_sum</code>: total organizations providing public event opportunities<br>
+</li>
+<li><code>take_action_sum</code>: total organizations providing political or civic action opportunities</li>
+</ul></li>
+<li>Composite civic opportunity scores:
+<ul>
+<li><code>civic_opp_sum</code>: total opportunity score</li>
+</ul></li>
+<li>Normalized civic opportunity indicators (per capita):
+<ul>
+<li><code>civic_org_sum_normalized</code>: total number of civic organizations per capita<br>
+</li>
+<li><code>civic_opp_sum_normalized</code>: total civic opportunities per capita<br>
+</li>
+<li><code>civic_opp_index</code>: quintile-based civic opportunity index, derived by dividing <code>civic_opp_sum_normalized</code> into five equal-sized bins<br>
+</li>
+<li><code>membership_sum_normalized</code>: total number of organizations providing membership opportunities per capita<br>
+</li>
+<li><code>volunteer_sum_normalized</code>: total number of organizations providing volunteer opportunities per capita<br>
+</li>
+<li><code>events_sum_normalized</code>: total number of organizations providing public event opportunities per capita<br>
+</li>
+<li><code>take_action_sum_normalized</code>: total number of organizations providing political or civic action opportunities per capita</li>
+</ul></li>
+<li>Sociodemographic indicators:
+<ul>
+<li><code>TotalPopulation</code>: total population<br>
+</li>
+<li><code>POV150</code>: poverty rate<br>
+</li>
+<li><code>SNGPNT</code>: single-parent households<br>
+</li>
+<li><code>BROAD</code>: households without broadband access<br>
+</li>
+<li><code>NOHSDP</code>: adults without a high school diploma<br>
+</li>
+<li><code>UNEMP</code>: unemployment rate<br>
+</li>
+<li><code>REMNRTY</code>: share of racial or ethnic minority residents</li>
+</ul></li>
+</ul>
+</details>
+<ul>
+<li><strong>Dataset 3</strong>: Aggregated organizational type breakdowns at the ZIP code (150,162 rows <span class="math inline">\(\times\)</span> 5 columns) and county levels (29,687 rows <span class="math inline">\(\times\)</span> 5 columns)</li>
+</ul>
+<details>
+<summary>
+<strong>Data descriptions</strong>
+</summary>
+<p>Also derived from Dataset 1, this dataset summarizes the types of organizations that provide civic opportunities at the ZIP code and county levels. Each observation corresponds to a unique geography-organization type pair and enables analysis of regional patterns in the composition of civic infrastructure.</p>
+<p>Each observation includes:</p>
+<ul>
+<li>Geographic identifiers:
+<ul>
+<li><code>FIPS</code>: county FIPS code<br>
+</li>
+<li><code>ZCTA</code>: ZIP Code Tabulation Area</li>
+</ul></li>
+<li>Organizational counts:
+<ul>
+<li><code>n</code>: number of civic opportunity-providing organizations of a given type in the geography</li>
+</ul></li>
+<li>Organization type classification:
+<ul>
+<li><code>class</code>: predicted organizational type (e.g., religious, political, professional)</li>
+</ul></li>
+<li>Relative frequency:
+<ul>
+<li><code>freq</code>: proportion of civic opportunity organizations in the geography that fall into the given class</li>
+</ul></li>
+<li>Primary provider type:
+<ul>
+<li><code>primary_org_cat</code>: the most common civic opportunity organization type in the geography; appears once per unit</li>
+</ul></li>
+</ul>
+</details>
 <p>The full datasets, along with documentation, are available via:</p>
 <ul>
 <li><p>📂 <a href="https://github.com/snfagora/american_civic_opportunity_datasets">GitHub Repository</a><br>
