@@ -126,18 +126,17 @@ htmltools::div(
 
 ```{=html}
 <style>
-  table.dataTable th, table.dataTable td {
-    white-space: nowrap;
+  table.dataTable {
+    width: 100% !important;
   }
-</style>
 
-table.dataTable td {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
+  table.dataTable th,
+  table.dataTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-<style>
   table.dataTable tbody td:first-child,
   table.dataTable tbody td:nth-child(2),
   table.dataTable thead th:first-child,
@@ -145,25 +144,23 @@ table.dataTable td {
     background-color: #f1f1f1;
     font-weight: bold;
   }
-</style>
 
-<style>
+  .highlight-civic {
+    background-color: #e0f7fa;
+  }
+
+  .highlight-type {
+    background-color: #fff8e1;
+  }
+
   .dataTables_wrapper {
     overflow-x: auto;
     width: 100% !important;
   }
-  table.dataTable {
-    width: 100% !important;
-  }
+
   body, .main-container, .page-columns {
     max-width: 100% !important;
     overflow-x: visible;
-  }
-  .highlight-civic {
-    background-color: #e0f7fa;
-  }
-  .highlight-type {
-    background-color: #fff8e1;
   }
 </style>
 ```

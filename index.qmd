@@ -19,7 +19,7 @@ To create our datasets on the landscape of civic opportunity in America, we begi
 
 Next, we link IRS administrative records with data scraped directly from organization websites. Using a combination of machine learning and natural language processing, we identify the type of each organization and whether it provides civic opportunities such as volunteering, membership, public events, and engaging in civic or political action.
 
-The resulting datasets cover over **1.3 million de-identified nonprofits** and are aggregated at the ZIP code and county levels. Each county is scored along a five-point **Civic Opportunity Index**, with additional indicators for organizational composition and community demographics.
+The resulting datasets cover over **1.7 million de-identified nonprofits** and are aggregated at the ZIP code and county levels. Each county is scored along a five-point **Civic Opportunity Index**, with additional indicators for organizational composition and community demographics.
 
 ### About This Dashboard   
 
@@ -35,15 +35,120 @@ This dashboard presents only a **subset** of the full *MapAgora* datasets. It in
 
 **⚠️ Important Note**  
 
-It does **not** include either the full **de-identified organization-level dataset** of 1.3M+ nonprofits 🏢 or the **ZIP code–level aggregates** 📮. This dashboard is limited to **county-level data only** 🗺️.  
+It does **not** include either the full **de-identified organization-level dataset** of 1.7M+ nonprofits 🏢 or the **ZIP code–level aggregates** 📮. This dashboard is limited to **county-level data only** 🗺️.  
 
 For ZIP-level data and detailed metadata on individual organizations, please refer to the full data release 📂.
 
 ### Data Access and Paper  
 
-- **Dataset 1**: organization-level dataset of de-identified nonprofit organizations  
-- **Dataset 2**: Aggregated civic opportunity counts at the ZIP code and county levels
-- **Dataset 3**: Aggregated organizational type breakdowns at the ZIP code and county levels  
+- **Dataset 1**: organization-level dataset of de-identified nonprofit organizations (1,774,798 rows $\times$ 17 columns)  
+
+<details>
+<summary><strong>Data descriptions</strong></summary>
+
+This dataset includes 1,774,798 de-identified nonprofit organizations. To protect privacy and reduce the risk of misinterpretation, all identifying information (e.g., organization names and EINs) is removed.
+
+Each observation includes:
+
+- Unique identifier:  
+  - `id`: a row index used for reference; contains no identifying information.
+
+- Geographic identifiers:  
+  - `state`: two-letter state abbreviation  
+  - `city`: city name listed in the IRS record  
+  - `FIPS`: county FIPS code  
+  - `ZCTA`: ZIP Code Tabulation Area
+
+- Civic opportunity indicators:  
+  - `membership`, `volunteer`, `events`, `take_action`: binary variables indicating whether the organization provides each type of civic opportunity (1 = provides the opportunity; 0 = does not provide it or information is unavailable)  
+  - `opp_binary`: equals 1 if the organization provides at least one civic opportunity; 0 otherwise  
+  - `opp_mean`: the mean of the four civic opportunity binary indicators
+
+- Organizational type:  
+  - `predicted`: machine-learned classification of the organization (e.g., religious, political, professional)
+
+- Address metadata:  
+  - `is_po`: indicates whether the organization lists a P.O. Box as its mailing address (1 = yes, 0 = no)  
+  - `grouping_value`: an anonymized internal identifier used to track federated organizations (e.g., national networks with local chapters)
+
+- Financial attributes:  
+  - `asset_amt`: total assets  
+  - `income_amt`: total income  
+  - `revenue_amt`: total revenue
+  
+</details>
+
+- **Dataset 2**: Aggregated civic opportunity counts at the ZIP code (30,988 rows $\times$ 24 columns) and county levels (3,281 rows $\times$ 24 columns)
+
+<details>
+<summary><strong>Data descriptions</strong></summary>
+
+Derived from Dataset 1, this dataset aggregates civic opportunity indicators and socioeconomic characteristics at the ZIP code (ZCTA) and county levels. Each observation corresponds to a geographic unit and includes counts of civic opportunity types, a composite score and index, normalized indicators, and contextual variables from the American Community Survey (ACS).
+
+Each observation includes:
+
+- Geographic identifiers:  
+  - `state`: two-letter state abbreviation  
+  - `FIPS`: county FIPS code  
+  - `ZCTA`: ZIP Code Tabulation Area
+
+- Organizational counts:  
+  - `n`: total nonprofit organizations  
+  - `civic_org_sum`: total civic opportunity organizations  
+  - `membership_sum`: total organizations providing membership opportunities  
+  - `volunteer_sum`: total organizations providing volunteer opportunities  
+  - `events_sum`: total organizations providing public event opportunities  
+  - `take_action_sum`: total organizations providing political or civic action opportunities
+
+- Composite civic opportunity scores:  
+  - `civic_opp_sum`: total opportunity score
+
+- Normalized civic opportunity indicators (per capita):  
+  - `civic_org_sum_normalized`: total number of civic organizations per capita  
+  - `civic_opp_sum_normalized`: total civic opportunities per capita  
+  - `civic_opp_index`: quintile-based civic opportunity index, derived by dividing `civic_opp_sum_normalized` into five equal-sized bins  
+  - `membership_sum_normalized`: total number of organizations providing membership opportunities per capita  
+  - `volunteer_sum_normalized`: total number of organizations providing volunteer opportunities per capita  
+  - `events_sum_normalized`: total number of organizations providing public event opportunities per capita  
+  - `take_action_sum_normalized`: total number of organizations providing political or civic action opportunities per capita
+
+- Sociodemographic indicators:  
+  - `TotalPopulation`: total population  
+  - `POV150`: poverty rate  
+  - `SNGPNT`: single-parent households  
+  - `BROAD`: households without broadband access  
+  - `NOHSDP`: adults without a high school diploma  
+  - `UNEMP`: unemployment rate  
+  - `REMNRTY`: share of racial or ethnic minority residents
+  
+</details>
+
+- **Dataset 3**: Aggregated organizational type breakdowns at the ZIP code (150,162 rows $\times$ 5 columns) and county levels (29,687 rows $\times$ 5 columns)
+
+<details>
+<summary><strong>Data descriptions</strong></summary>
+
+Also derived from Dataset 1, this dataset summarizes the types of organizations that provide civic opportunities at the ZIP code and county levels. Each observation corresponds to a unique geography-organization type pair and enables analysis of regional patterns in the composition of civic infrastructure.
+
+Each observation includes:
+
+- Geographic identifiers:  
+  - `FIPS`: county FIPS code  
+  - `ZCTA`: ZIP Code Tabulation Area
+
+- Organizational counts:  
+  - `n`: number of civic opportunity-providing organizations of a given type in the geography
+
+- Organization type classification:  
+  - `class`: predicted organizational type (e.g., religious, political, professional)
+
+- Relative frequency:  
+  - `freq`: proportion of civic opportunity organizations in the geography that fall into the given class
+
+- Primary provider type:  
+  - `primary_org_cat`: the most common civic opportunity organization type in the geography; appears once per unit
+  
+</details>
 
 The full datasets, along with documentation, are available via:  
 
