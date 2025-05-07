@@ -146,6 +146,28 @@ df_joined <- df %>%
 
 :::
 
+::: {.callout-note collapse=true title="📘 Codebook: Organizational Type Classification"}
+
+| Category              | Description                                                                                                      | Examples                                                                                                                                                          |
+|-----------------------|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Arts & Cultural       | Arts organizations and cultural organizations, including those that protect community heritage                  | BANGOR SYMPHONY ORCHESTRA, BRICK STORE MUSEUM, CHESAPEAKE SHAKESPEARE COMPANY                                                                                     |
+| Community             | Organizations focused on directly helping people in their community and providing community services            | WOMENS COMMUNITY CENTER, FAMILY RESOURCE CENTER OF NORTHWEST OHIO, PELLA COMMUNITY FOOD SHELF                                                                     |
+| Economic              | Organizations directly promoting economic improvement in an area                                                | FALLS CITY CHAMBER OF COMMERCE, NEW ALBANY URBAN ENTERPRISE ZONE, MAIN STREET CORRIDOR DEVELOPMENT CORPORATION                                                   |
+| Education             | Schools, universities, organizations that support schools, and those that provide direct education services     | JOHNS HOPKINS UNIVERSITY, THOMPSON SCHOOL PTO, LITTLE RASCALS PRESCHOOL                                                                                           |
+| Foundations           | Organizations focused on granting money or scholarships to others                                               | ROBERT WOOD JOHNSON FOUNDATION, BVS FAMILY FOUNDATION                                                                                                              |
+| Healthcare            | Organizations that directly deliver care or support healthcare delivery                                         | ST MARYS REGIONAL HEALTH CENTER, SOUTHERN TIER HEALTH CARE SYSTEM INC, CANCER RESOURCES FOR ELKHART COUNTY INC                                                  |
+| Hobby & Sports        | Shared interest and sports organizations                                                                        | GARDEN CLUB OF KENTUCKY INC, LAGUNA YOUTH BASEBALL LEAGUE, VILLA PARK BOXING CLUB                                                                                 |
+| Housing               | Organizations that provide or manage housing                                                                    | BELLE APARTMENTS HOUSING DEVELOPMENT FUND CORPORATION, CAMPUS TOWERS SENIOR LIVING INC, HABITAT FOR HUMANITY INTERNATIONAL INC                                   |
+| Political             | Civic participation and political organizations involved in decision-making or advocacy                         | AMERICAN CIVIL LIBERTIES UNION, LEAGUE OF WOMEN VOTERS, ARIZONA ADVOCACY NETWORK                                                                                  |
+| Professional          | Professional societies and industry groups                                                                      | NATIONAL INDEPENDENT FLAG DEALERS ASSOCIATION, BEEFMASTER BREEDERS CATTLEWOMEN, AMERICAN CANCER ASSOCIATION                                                      |
+| Religious             | Religious institutions                                                                                          | CROSSROADS CHRISTIAN CHURCH, NEW SPRINGS CHURCH, MANASSAS MOSQUE                                                                                                   |
+| Research & Think Tank | Think tanks and research groups                                                                                 | SOCIETY FOR THE ADVANCEMENT OF MATERIAL AND PROCESS ENGINEERING, INSTITUTE FOR CONSERVATION ADVOCACY RESEARCH AND EDUCATION, AMERICAN COUNCIL FOR CAPITAL FORMATION CENTER FOR POLICY RESEARCH |
+| Social & Fraternal    | Organizations that bring people together (often based on shared identity)                                       | KNIGHTS OF COLUMBUS, ROTARY INTERNATIONAL, NATIONAL KAPPA KAPPA IOTA                                                                                               |
+| Unions                | Labor unions                                                                                                    | AMERICAN FEDERATION OF STATE COUNTY & MUNICIPAL EMPLOYEES, FRESNO CITY EMPLOYEES ASSOCIATION, CIVIL SERVICE EMPLOYEES ASSOCIATION                                 |
+| Youth                 | Organizations focused on working with and supporting youth                                                      | BOY SCOUTS OF AMERICA, NEBRASKA 4-H FOUNDATION, CROSSWALK TEEN CENTER                                                                                               |
+
+:::
+
 ```{r}
 # Scroll tip message for users
 htmltools::tags$div(
