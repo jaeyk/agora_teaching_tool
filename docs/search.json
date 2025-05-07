@@ -32,20 +32,6 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "Meet the team behind the Mapping the Modern Agora project.\n\n\n\n Hahrie Han\nDirector, SNF Agora Institute\nProfessor of Political Science, Johns Hopkins University\n\n\n Milan de Vries\nAssociate Research Scholar, SNF Agora Institute, Johns Hopkins University\n\n\n Jae Yeon Kim\nAssistant Research Scientist, SNF Agora Institute, Johns Hopkins University Incoming Assistant Professor of Public Policy, UNC-Chapel Hill"
-  },
-  {
-    "objectID": "about.html#the-mma-team",
-    "href": "about.html#the-mma-team",
-    "title": "About",
-    "section": "",
-    "text": "Meet the team behind the Mapping the Modern Agora project.\n\n\n\n Hahrie Han\nDirector, SNF Agora Institute\nProfessor of Political Science, Johns Hopkins University\n\n\n Milan de Vries\nAssociate Research Scholar, SNF Agora Institute, Johns Hopkins University\n\n\n Jae Yeon Kim\nAssistant Research Scientist, SNF Agora Institute, Johns Hopkins University Incoming Assistant Professor of Public Policy, UNC-Chapel Hill"
-  },
-  {
-    "objectID": "about.html#the-dashbboard-project",
-    "href": "about.html#the-dashbboard-project",
-    "title": "About",
-    "section": "The Dashbboard Project",
-    "text": "The Dashbboard Project\nThis dashboard is powered by the MapAgora datasets, which are derived from IRS tax returns of tax-exempt organizations and data scraped from their websites. The goal is to map civic infrastructure across the United States.\n\nDeveloped and maintained by:\nJae Yeon Kim and Milan de Vries\n💬 Questions or suggestions?\nPlease reach out to Jae Yeon Kim."
+    "text": "This dashboard is powered by the MapAgora datasets, which are derived from IRS tax returns of tax-exempt organizations and data scraped from their websites. The goal is to map civic infrastructure across the United States.\n\nDeveloped and maintained by:\nJae Yeon Kim and Milan de Vries\n💬 Questions or suggestions?\nPlease reach out to Jae Yeon Kim."
   }
 ]
