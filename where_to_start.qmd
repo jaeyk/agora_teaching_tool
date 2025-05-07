@@ -6,8 +6,8 @@ page-layout: full
 
 <div style="margin-bottom: 1em;">
 [⬅️ Back to Home](index.qmd){.btn .btn-outline-primary}
-[🗺️ Move to Map](dashboard.qmd#map){.btn .btn-outline-primary}
-[📋 Move to Table](dashboard.qmd#table){.btn .btn-outline-primary}
+[🗺️ Move to Map](map.qmd){.btn .btn-outline-primary}
+[📋 Move to Table](table.qmd){.btn .btn-outline-primary}
 </div>
 
 New to MapAgora? This page offers prompts and reflections to help you begin exploring the dashboard and datasets—whether you're curious about your own county or conducting place-based research.
