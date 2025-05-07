@@ -6,7 +6,7 @@ format:
       text: |
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     page-layout: full
-    self-contained: false
+    self-contained: true
     theme: default
 execute:
   echo: false
@@ -72,12 +72,12 @@ theme_set(theme_minimal())
 
 :::
 
-::: {.callout-warning collapse=true title="Interpreting the Primary Organization Type Map"}
+::: {.callout-warning collapse=true title="Interpreting the Primary Organization Type Map and Sidebar"}
 The **Primary Organization Type** layer shows the most common type of civic opportunity organization in each county, based on percentages.
 
-- If a county has **no organizations of a specific type** (e.g., Religious), it will **not be colored for that type**.
-- However, the county will still appear on the map if it has other types of civic opportunity organizations.
-- If a county has **no civic opportunity organizations at all**, it will appear **gray** or may be excluded depending on the layer.
+- If a county has **no civic opportunity organizations at all**, it will appear **gray** or may be excluded from the map.
+- If a county has **no organizations of a specific type** (e.g., Religious), that type will not appear in the sidebar chart.
+- The sidebar only displays organization types that are actually present in the county — some counties may show many types, others only a few.
 
 👉 The values represent **percentages**, not raw counts. A county with only a few organizations may still show 100% if all belong to the same type.
 :::
