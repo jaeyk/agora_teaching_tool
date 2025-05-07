@@ -169,8 +169,8 @@ DT::datatable(
     drawCallback = JS('function() { this.api().columns.adjust(); }'),
     columnDefs = list(
       list(className = 'dt-center', targets = "_all"),
-      list(className = 'highlight-civic', targets = 2:11),
-      list(className = 'highlight-type', targets = 12:(ncol(df_joined) - 1))
+      list(className = 'highlight-civic', targets = 2:12),
+      list(className = 'highlight-type', targets = 13:(ncol(df_joined) - 1))
     )
   ),
   filter = "top",
