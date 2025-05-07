@@ -5,7 +5,9 @@ format: html
 
 ## The MMA Team
 
-Meet the team behind MapAgora.
+Meet the team behind the [*Mapping the Modern Agora*](https://snfagora.jhu.edu/project/mapping-the-modern-agora/) project.
+
+<div class="full-width">
 
 :::{.grid cols=3}
 
@@ -30,6 +32,8 @@ Incoming Assistant Professor of Public Policy, UNC-Chapel Hill
 :::
 
 :::
+
+</div>
 
 ## The Dashbboard Project
 
