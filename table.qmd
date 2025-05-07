@@ -65,11 +65,12 @@ df_joined <- df %>%
   group_by(state_abbr) %>%
   mutate(state_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min")) %>%
   ungroup() %>%
+  mutate(civic_opp_sum_normalized = round(civic_opp_sum_normalized, 0)) %>%
   mutate(national_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min")) %>%
   select(
     State = state_abbr,
     County = county_name,
-    `Civic Opportunity per Capita` = round(civic_opp_sum_normalized,0),
+    `Civic Opportunity per Capita` = civic_opp_sum_normalized,
     `Civic Opportunity Index` = civic_opp_index,
     Percentile = civic_opp_percentile_label,
     `State Rank` = state_rank,
