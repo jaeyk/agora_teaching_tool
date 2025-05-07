@@ -69,16 +69,17 @@ df_joined <- df %>%
   select(
     State = state_abbr,
     County = county_name,
+    `Civic Opportunity per Capita` = civic_opp_sum_normalized,
     `Civic Opportunity Index` = civic_opp_index,
     Percentile = civic_opp_percentile_label,
     `State Rank` = state_rank,
     `National Rank` = national_rank,
     `Civic Opportunity Orgs` = civic_org_sum,
     `Total Nonprofits` = n,
-    `Volunteer N` = volunteer_sum,
     `Membership N` = membership_sum,
-    `Take Action N` = take_action_sum,
+    `Volunteer N` = volunteer_sum,
     `Events N` = events_sum,
+    `Take Action N` = take_action_sum,
     `Religious %` = Religious,
     `Social & Fraternal %` = `Social & Fraternal`,
     `Youth %` = Youth,
@@ -96,31 +97,83 @@ df_joined <- df %>%
     `Political %` = Political
   ) %>%
   arrange(desc(`Civic Opportunity Index`))
+```
 
-htmltools::div(
-  style = "width: 100%; overflow-x: auto;",
-  DT::datatable(
-    df_joined,
-    rownames = FALSE,
-    extensions = c('FixedHeader', 'Buttons'),
-    options = list(
-      dom = 'Bfrtip',
-      buttons = list('colvis'),
-      scrollX = TRUE,
-      scrollCollapse = TRUE,
-      fixedHeader = TRUE,
-      pageLength = 25,
-      autoWidth = TRUE,
-      drawCallback = JS('function() { this.api().columns.adjust(); }'),
-      columnDefs = list(
-        list(className = 'dt-center', targets = "_all"),
-        list(className = 'highlight-civic', targets = 2:11),
-        list(className = 'highlight-type', targets = 12:(ncol(df_joined) - 1))
-      )
-    ),
-    filter = "top",
-    class = 'stripe hover nowrap'
-  )
+::: {.callout-note collapse=true title="📘 Civic Opportunity Counts and Organization Types"}
+
+- **Civic opportunity per capita**: A normalized composite score representing the density of civic opportunity in a county. For each organization, we calculate the average of four binary indicators: **Membership**, **Volunteer**, **Public Events**, and **Take Civic or Political Action** (each scored 0 or 1). These are averaged to produce a score between 0 and 1 per organization. We then sum these scores across all organizations in a county, and normalize the total **per 100,000 residents**.  
+
+  - *Example*: If the sum of these averaged scores across all organizations in a county is **1,000**, and the county population is **1,000,000**, then:  
+    1,000 ÷ 1,000,000 × 100,000 = **100**  
+    That means the county has a civic opportunity score of **100 per 100,000 residents**.
+
+- **Civic opportunity index**: A simplified version of the score above, divided into five bins (quintiles).  
+  - *1 = lowest civic opportunity*, *5 = highest*.
+
+- **Percentile**: National percentile of the civic opportunity per capita score.  
+
+  - *Example*: A county with a score of 125 that ranks in the top 5% of all counties would be labeled as “Top 5%”.
+
+- **State Rank**: Rank of the county within its state by civic opportunity score per capita.  
+
+- **National Rank**: Rank of the county across all U.S. counties by civic opportunity score per capita.
+
+- **Civic Opportunity Orgs**: Count of organizations tagged as offering at least one type of civic opportunity.  
+
+- **Total Nonprofits**: Total number of nonprofit organizations in the county.
+
+---
+
+**Subtypes of Civic Opportunity Organizations**
+
+- **Membership N**: Organizations offering membership opportunities.  
+- **Volunteer N**: Organizations offering volunteer opportunities.  
+- **Events N**: Organizations offering public event opportunities.  
+- **Take Action N**: Organizations offering civic or political action opportunities.
+
+---
+
+**Civic Opportunity Organizational Type Breakdown (% of all civic opportunity organizations in the county)**
+
+  - **Religious %**, **Social & Fraternal %**, **Youth %**, **Unions %**, **Healthcare %**, **Economic %**,  
+  **Education %**, **Research & Think Tank %**, **Hobby & Sports %**, **Community %**,  
+  **Foundations %**, **Professional %**, **Arts & Cultural %**, **Housing %**, **Political %**
+
+  - Each percentage represents the share of that organization type among all civic opportunity organizations in the county.  
+
+  - *Example*: If a county has 100 civic opportunity organizations, and 12 of them are classified as “Religious,” the **Religious %** would be 12%.
+
+:::
+
+```{r}
+# Scroll tip message for users
+htmltools::tags$div(
+  style = "margin-bottom: 10px; font-style: italic; color: #555;",
+  HTML("💡 <strong>Tip:</strong> To scroll horizontally, hover over the table body — column headers are fixed and won’t scroll.")
+)
+
+# Render datatable
+DT::datatable(
+  df_joined,
+  rownames = FALSE,
+  extensions = c('FixedHeader', 'Buttons'),
+  options = list(
+    dom = 'Bfrtip',
+    buttons = list('colvis'),
+    scrollX = TRUE,
+    scrollCollapse = TRUE,
+    fixedHeader = TRUE,
+    pageLength = 25,
+    autoWidth = TRUE,
+    drawCallback = JS('function() { this.api().columns.adjust(); }'),
+    columnDefs = list(
+      list(className = 'dt-center', targets = "_all"),
+      list(className = 'highlight-civic', targets = 2:11),
+      list(className = 'highlight-type', targets = 12:(ncol(df_joined) - 1))
+    )
+  ),
+  filter = "top",
+  class = 'stripe hover nowrap'
 )
 ```
 

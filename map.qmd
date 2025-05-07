@@ -26,6 +26,62 @@ pacman::p_load(
 theme_set(theme_minimal())
 ```
 
+::: {.callout-note collapse=true title="📘 Civic Opportunity Counts and Organization Types"}
+
+- **Civic opportunity per capita**: A normalized composite score representing the density of civic opportunity in a county. For each organization, we calculate the average of four binary indicators: **Membership**, **Volunteer**, **Public Events**, and **Take Civic or Political Action** (each scored 0 or 1). These are averaged to produce a score between 0 and 1 per organization. We then sum these scores across all organizations in a county, and normalize the total **per 100,000 residents**.  
+
+  - *Example*: If the sum of these averaged scores across all organizations in a county is **1,000**, and the county population is **1,000,000**, then:  
+    1,000 ÷ 1,000,000 × 100,000 = **100**  
+    That means the county has a civic opportunity score of **100 per 100,000 residents**.
+
+- **Civic opportunity index**: A simplified version of the score above, divided into five bins (quintiles).  
+  - *1 = lowest civic opportunity*, *5 = highest*.
+  
+- **Percentile**: National percentile of the civic opportunity per capita score.  
+
+  - *Example*: A county with a score of 125 that ranks in the top 5% of all counties would be labeled as “Top 5%”.
+
+- **State Rank**: Rank of the county within its state by civic opportunity score per capita.  
+
+- **National Rank**: Rank of the county across all U.S. counties by civic opportunity score per capita.
+
+- **Civic Opportunity Orgs**: Count of organizations tagged as offering at least one type of civic opportunity.  
+
+- **Total Nonprofits**: Total number of nonprofit organizations in the county.
+
+---
+
+**Subtypes of Civic Opportunity Organizations**
+
+- **Membership N**: Organizations offering membership opportunities.  
+- **Volunteer N**: Organizations offering volunteer opportunities.  
+- **Events N**: Organizations offering public event opportunities.  
+- **Take Action N**: Organizations offering civic or political action opportunities.  
+  
+---
+
+**Civic Opportunity Organizational Type Breakdown (% of all civic opportunity organizations in the county)**
+
+  - **Religious %**, **Social & Fraternal %**, **Youth %**, **Unions %**, **Healthcare %**, **Economic %**,  
+  **Education %**, **Research & Think Tank %**, **Hobby & Sports %**, **Community %**,  
+  **Foundations %**, **Professional %**, **Arts & Cultural %**, **Housing %**, **Political %**
+
+  - Each percentage represents the share of that organization type among all civic opportunity organizations in the county.  
+
+  - *Example*: If a county has 100 civic opportunity organizations, and 12 of them are classified as “Religious,” the **Religious %** would be 12%.
+
+:::
+
+::: {.callout-warning collapse=true title="Interpreting the Primary Organization Type Map"}
+The **Primary Organization Type** layer shows the most common type of civic opportunity organization in each county, based on percentages.
+
+- If a county has **no organizations of a specific type** (e.g., Religious), it will **not be colored for that type**.
+- However, the county will still appear on the map if it has other types of civic opportunity organizations.
+- If a county has **no civic opportunity organizations at all**, it will appear **gray** or may be excluded depending on the layer.
+
+👉 The values represent **percentages**, not raw counts. A county with only a few organizations may still show 100% if all belong to the same type.
+:::
+
 ```{r}
 # Load and prepare civic opportunity data
 civic_data <- tryCatch({
