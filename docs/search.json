@@ -32,6 +32,6 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "This dashboard is powered by the MapAgora datasets, which are derived from IRS tax returns of tax-exempt organizations and data scraped from their websites. The goal is to map civic infrastructure across the United States.\n\nDeveloped and maintained by:\nJae Yeon Kim and Milan de Vries\n💬 Questions or suggestions?\nPlease reach out to Jae Yeon Kim."
+    "text": "This dashboard is powered by the MapAgora datasets, which are derived from IRS tax returns of tax-exempt organizations and data scraped from their websites. The goal is to map civic infrastructure across the United States.\nWe acknowledge the support from the Carnegie Corporation of New York and the Johns Hopkins University’s SNF Agora Institute in the development of this project.\n\nDeveloped and maintained by:\nJae Yeon Kim and Milan de Vries\n💬 Questions or suggestions?\nPlease reach out to Jae Yeon Kim."
   }
 ]
