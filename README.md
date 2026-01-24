@@ -70,8 +70,13 @@ This dashboard uses **only a subset** of the full MapAgora data:
 | Dataset 3 | ZIP and county-level organizational type breakdowns ✅ *(only county shown)* |
 
 - 🔗 [GitHub Repository](https://github.com/snfagora/american_civic_opportunity_datasets)  
+
 - 🗃️ [Harvard Dataverse](https://doi.org/10.7910/DVN/IRCA7C)  
-- 📄 Data Paper (*forthcoming*): *MapAgora, Civic Opportunity Datasets for the Study of American Local Politics and Public Policy* by Jae Yeon Kim, Milan de Vries, and Hahrie Han
+
+- 📄 **Data paper**:  
+  ["The Mapping the Modern Agora Data Paper: MapAgora, Civic Opportunity Datasets for the Study of American Local Politics and Public Policy"](https://www.nature.com/articles/s41597-025-05353-6.epdf?sharing_token=4HNrMMO7VOt9eQU42u5HrtRgN0jAjWel9jnR3ZoTv0Mpc6G86FwIcTyoYmFsd3Uahts-NrsxWU-Q0gVeUk6vtZN_k8pGamsuixpoqi1fOhudhtavd6jX7U8p5I4FQf1oJKpcfff8nLXFvlsgow1agfORM7KYSpMi13jgivdJVAs%3D) — *Nature: Scientific Data*, 2025  
+  *(Jae Yeon Kim, Milan de Vries, & Hahrie Han)*  
+  [Replication](https://github.com/snfagora/american_civic_opportunity_datasets) • [Supplement](https://www.readcube.com/articles/supplement?doi=10.1038%2Fs41597-025-05353-6&index=0)
 
 ---
 
