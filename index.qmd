@@ -227,9 +227,9 @@ The full datasets, along with documentation, are available via:
 -   📊 [Harvard Dataverse (archived
     release)](https://doi.org/10.7910/DVN/IRCA7C)
 
--   📄 *The Mapping the Modern Agora* data Paper: [*MapAgora, Civic
+-   📄 *The Mapping the Modern Agora* data Paper: *MapAgora, Civic
     Opportunity Datasets for the Study of American Local Politics and
-    Public Policy*](https://www.nature.com/articles/s41597-025-05353-6.epdf?sharing_token=4HNrMMO7VOt9eQU42u5HrtRgN0jAjWel9jnR3ZoTv0Mpc6G86FwIcTyoYmFsd3Uahts-NrsxWU-Q0gVeUk6vtZN_k8pGamsuixpoqi1fOhudhtavd6jX7U8p5I4FQf1oJKpcfff8nLXFvlsgow1agfORM7KYSpMi13jgivdJVAs%3D) (Jae Yeon Kim, Milan de Vries, and Hahrie Han) —
+    Public Policy* (Jae Yeon Kim, Milan de Vries, and Hahrie Han) —
     *Nature: Scientific Data*, Online First in July 2025
     [\[replication\]](https://github.com/snfagora/american_civic_opportunity_datasets)
     [\[supplementary
