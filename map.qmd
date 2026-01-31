@@ -631,7 +631,6 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     weight = 1,
     popup = ~civic_index_bar_html,
     label = ~paste0(NAMELSAD, ", ", STUSPS),
-    layerId = ~paste0(NAMELSAD, ", ", STUSPS, " (", GEOID, ")"),
     group = "Civic Opportunity Counts"
   ) %>%
   # Civic Opportunity legend (explicit colors/labels to ensure match)
@@ -652,7 +651,6 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     weight = 1,
     popup = ~orgtype_bar_html,
     label = ~paste0(NAMELSAD, ", ", STUSPS),
-    layerId = ~paste0(NAMELSAD, ", ", STUSPS, " (", GEOID, ")"),
     group = "Primary Organization Type"
   ) %>%
   # Primary Org legend
@@ -715,15 +713,10 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
   ") %>%
   # Fit map to US bounds
   fitBounds(lng1 = -125, lat1 = 24, lng2 = -66.9, lat2 = 49) %>%
-  # Add search (use layerId for unique county identification)
+  # Add search
   addSearchFeatures(
     targetGroups = c("Civic Opportunity Counts", "Primary Organization Type"),
-    options = searchFeaturesOptions(
-      zoom = 7,
-      openPopup = TRUE,
-      textPlaceholder = "Search county (e.g., Orange County, CA)",
-      hideMarkerOnCollapse = TRUE
-    )
+    options = searchFeaturesOptions(zoom = 7, openPopup = TRUE)
   )
 
 map_data_civic <- map_data_civic %>% st_set_geometry(NULL)
@@ -780,11 +773,6 @@ html, body {
     border-left: none;
     border-top: 1px solid #ccc;
   }
-}
-
-/* Bug fix: Hide org legend by default since Civic Opportunity is the default layer */
-.org-legend {
-  display: none;
 }
 
 ")),
