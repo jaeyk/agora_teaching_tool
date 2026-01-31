@@ -630,14 +630,14 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     color = "#BDBDC1",
     weight = 1,
     popup = ~civic_index_bar_html,
-    label = ~NAMELSAD,
+    label = ~paste0(NAMELSAD, ", ", STUSPS),
     group = "Civic Opportunity Counts"
   ) %>%
-  # Civic Opportunity legend
+  # Civic Opportunity legend (explicit colors/labels to ensure match)
   addLegend(
     position = "bottomright",
-    pal = pal_green,
-    values = map_data_civic$civic_opp_category,
+    colors = c("lightgrey", "#e5f5e0", "#a1d99b", "#74c476", "#31a354", "#006d2c"),
+    labels = c("No data", "1 (Lowest)", "2", "3", "4", "5 (Highest)"),
     title = "Civic Opportunity Index",
     group = "Civic Opportunity Counts",
     className = "info legend civic-legend"
@@ -650,7 +650,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     color = "#BDBDC1",
     weight = 1,
     popup = ~orgtype_bar_html,
-    label = ~NAMELSAD,
+    label = ~paste0(NAMELSAD, ", ", STUSPS),
     group = "Primary Organization Type"
   ) %>%
   # Primary Org legend
