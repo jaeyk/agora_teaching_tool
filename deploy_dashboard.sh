@@ -7,7 +7,7 @@ DOCS_DIR="docs"
 
 # Render the Quarto project in parallel
 echo "Rendering Quarto project..."
-quarto render
+quarto render --parallel
 
 # Create the docs folder if it doesn't exist
 mkdir -p "$DOCS_DIR"
