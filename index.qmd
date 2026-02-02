@@ -3,18 +3,33 @@ title: ""
 format: html
 ---
 
-# MapAgora Dashboard
+# MapAgora Teaching Dashboard
 
-Welcome to the **MapAgora Dashboard**, an interactive site that
-visualizes the availability, composition, and equity of civic
-opportunities across U.S. counties. This dashboard is part of the
-[*Mapping the Modern
+Welcome to the **MapAgora Teaching Dashboard**, an interactive tool for
+learning about and exploring civic opportunities across U.S. counties.
+This dashboard is part of the [*Mapping the Modern
 Agora*](https://snfagora.jhu.edu/project/mapping-the-modern-agora/)
 project, hosted at the SNF Agora Institute at Johns Hopkins University,
 which systematically measures civic infrastructure using large-scale
 administrative and digital trace data.
 
-### Motivation 🚀
+::: {.callout-tip}
+## New to MapAgora?
+Start with the **[Learn](learn.qmd)** page to understand the data and methodology,
+then visit **[Where to Start](where_to_start.qmd)** for guided exploration steps.
+:::
+
+### What You Can Do Here
+
+| Feature | Description |
+|---------|-------------|
+| [**Learn**](learn.qmd) | Understand the data sources, methodology, and limitations |
+| [**Where to Start**](where_to_start.qmd) | Learning objectives and step-by-step exploration guides |
+| [**Map**](map.qmd) | Explore counties visually, add notes, compare up to 3 counties |
+| [**Table**](table.qmd) | Search, filter, and bookmark counties of interest |
+| [**Compare**](compare.qmd) | Side-by-side state and county comparisons |
+
+### Motivation
 
 Today, most people are disconnected from the democratic processes that
 allow us to engage, deliberate, and make decisions together. Civil
@@ -57,14 +72,11 @@ datasets. It includes:
 
 **Explore the Dashboard**
 
--   🗺️ [**Interactive
-    Map**](https://snfagora.github.io/agora_dashboard/map.html): View
-    county-level civic opportunity scores, see how each place ranks, and
-    examine the types of organizations driving civic access.\
--   📋 [**Interactive
-    Table**](https://snfagora.github.io/agora_dashboard/table.html):
-    Search, filter, and sort civic opportunity indicators across all
-    U.S. counties, with comparisons to state and national benchmarks.
+-   📖 [**Learn the Methodology**](learn.qmd): Understand how the data was collected, what civic opportunity means, and the limitations of the dataset.
+-   🎯 [**Where to Start**](where_to_start.qmd): Learning objectives and guided exploration for both map and table.
+-   🗺️ [**Interactive Map**](map.qmd): View county-level civic opportunity scores, add personal notes, and compare up to 3 counties side-by-side.
+-   📋 [**Interactive Table**](table.qmd): Search, filter, bookmark counties, and export data for further analysis.
+-   📊 [**Compare**](compare.qmd): Side-by-side state and county comparisons with interactive charts.
 
 **⚠️ Important Note**
 

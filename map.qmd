@@ -632,6 +632,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     weight = 1,
     popup = ~orgtype_bar_html,
     label = ~paste0(NAMELSAD, ", ", STUSPS),
+    layerId = ~GEOID,
     group = "Primary Organization Type"
   ) %>%
   # Primary Org legend
@@ -661,6 +662,7 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
     weight = 1,
     popup = ~civic_index_bar_html,
     label = ~paste0(NAMELSAD, ", ", STUSPS),
+    layerId = ~GEOID,
     group = "Civic Opportunity Counts"
   ) %>%
   # Civic Opportunity legend
@@ -715,20 +717,114 @@ combined_map <- leaflet(options = leafletOptions(minZoom = 3, zoomControl = TRUE
       });
     }
   ") %>%
-  # JS to redirect popup to sidebar
+  # JS to redirect popup to sidebar with annotation support
   htmlwidgets::onRender("
     function(el, x) {
       var map = this;
-      function updateSidebar(content) {
-        var sidebar = document.getElementById('popup-sidebar');
-        if (sidebar) sidebar.innerHTML = content;
+
+      // Annotation storage functions
+      function getAnnotations() {
+        try {
+          return JSON.parse(localStorage.getItem('mapAnnotations') || '{}');
+        } catch(e) {
+          return {};
+        }
       }
+
+      function saveAnnotation(fips, note) {
+        var annotations = getAnnotations();
+        if (note && note.trim()) {
+          annotations[fips] = {
+            note: note.trim(),
+            timestamp: new Date().toISOString()
+          };
+        } else {
+          delete annotations[fips];
+        }
+        localStorage.setItem('mapAnnotations', JSON.stringify(annotations));
+      }
+
+      function renderAnnotationPanel(fips) {
+        var annotations = getAnnotations();
+        var existing = annotations[fips] || { note: '' };
+        var timestamp = existing.timestamp ? new Date(existing.timestamp).toLocaleDateString() : '';
+
+        return '<div class=\"annotation-panel\">' +
+          '<h5>Your Notes</h5>' +
+          '<textarea class=\"annotation-textarea\" id=\"annotation-text-' + fips + '\" placeholder=\"Add your notes about this county...\">' +
+          (existing.note || '') + '</textarea>' +
+          (timestamp ? '<small style=\"color:#666;\">Last saved: ' + timestamp + '</small><br/>' : '') +
+          '<div class=\"annotation-actions\">' +
+          '<button class=\"annotation-save-btn\" onclick=\"window.saveCountyAnnotation(\\'' + fips + '\\')\">' +
+          (existing.note ? 'Update Note' : 'Save Note') + '</button>' +
+          (existing.note ? '<button class=\"annotation-delete-btn\" onclick=\"window.deleteCountyAnnotation(\\'' + fips + '\\')\">Delete</button>' : '') +
+          '</div>' +
+          '<div class=\"annotation-saved-indicator\" id=\"save-indicator-' + fips + '\">Saved!</div>' +
+          '</div>';
+      }
+
+      // Global functions for button onclick handlers
+      window.saveCountyAnnotation = function(fips) {
+        var textarea = document.getElementById('annotation-text-' + fips);
+        if (textarea) {
+          saveAnnotation(fips, textarea.value);
+          var indicator = document.getElementById('save-indicator-' + fips);
+          if (indicator) {
+            indicator.classList.add('show');
+            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+          }
+          // Update button text
+          var btn = textarea.parentElement.querySelector('.annotation-save-btn');
+          if (btn) btn.textContent = 'Update Note';
+        }
+      };
+
+      window.deleteCountyAnnotation = function(fips) {
+        if (confirm('Delete this note?')) {
+          saveAnnotation(fips, '');
+          var textarea = document.getElementById('annotation-text-' + fips);
+          if (textarea) textarea.value = '';
+          // Remove delete button and update save button
+          var panel = textarea.closest('.annotation-panel');
+          var deleteBtn = panel.querySelector('.annotation-delete-btn');
+          if (deleteBtn) deleteBtn.remove();
+          var saveBtn = panel.querySelector('.annotation-save-btn');
+          if (saveBtn) saveBtn.textContent = 'Save Note';
+        }
+      };
+
+      function updateSidebar(content, fips, countyName) {
+        // Check if comparison mode is enabled
+        if (window.comparisonState && window.comparisonState.enabled) {
+          window.addToComparison(fips, countyName, content);
+          return;
+        }
+
+        // Normal single-county view
+        var singleView = document.getElementById('single-view');
+        if (singleView) {
+          singleView.innerHTML = content + renderAnnotationPanel(fips);
+        }
+      }
+
       map.eachLayer(function(layer) {
         if (layer.getPopup && layer.getPopup()) {
           var popupContent = layer.getPopup().getContent();
+          var layerId = layer.options.layerId;
+          var label = layer.options.label;
           layer.unbindPopup();
-          layer.on('click', function() {
-            updateSidebar(popupContent);
+          layer.on('click', function(e) {
+            var fips = layerId || 'unknown';
+            // Extract county name from label or popup content
+            var countyName = 'County';
+            if (label) {
+              countyName = label;
+            } else {
+              // Try to extract from popup content
+              var match = popupContent.match(/<h4[^>]*>([^<]+)</);
+              if (match) countyName = match[1];
+            }
+            updateSidebar(popupContent, fips, countyName);
           });
         }
       });
@@ -757,11 +853,73 @@ html, body {
   margin: 0;
 }
 
+.map-controls {
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.comparison-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.comparison-toggle:hover {
+  background: #e9ecef;
+}
+
+.comparison-toggle.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: white;
+}
+
+.comparison-info {
+  font-size: 13px;
+  color: #666;
+}
+
+.comparison-info.active {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+.clear-btn {
+  padding: 6px 12px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: none;
+}
+
+.clear-btn.show {
+  display: inline-block;
+}
+
+.clear-btn:hover {
+  background: #c82333;
+}
+
 .layout {
-  display: flex; !important;
+  display: flex;
   flex-direction: row;
-  min-height: 1200px;
-  height: 100%;
+  min-height: 1100px;
+  height: calc(100% - 50px);
 }
 
 #map-container {
@@ -777,6 +935,54 @@ html, body {
   background-color: #f9f9f9;
   padding: 1em;
   font-size: 14px;
+}
+
+.comparison-view {
+  display: none;
+}
+
+.comparison-view.active {
+  display: block;
+}
+
+.comparison-panel {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 1em;
+  background: white;
+}
+
+.comparison-panel h4 {
+  margin: 0 0 0.5em 0;
+  padding-bottom: 0.5em;
+  border-bottom: 2px solid #4CAF50;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.remove-county-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.remove-county-btn:hover {
+  background: #c82333;
+}
+
+.single-view {
+  display: block;
+}
+
+.single-view.hidden {
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -800,10 +1006,149 @@ html, body {
 
 ")),
     tags$div(
+      class = "map-controls",
+      tags$button(
+        id = "comparison-toggle",
+        class = "comparison-toggle",
+        onclick = "toggleComparisonMode()",
+        "Compare Counties"
+      ),
+      tags$span(id = "comparison-info", class = "comparison-info", "Click toggle to enable comparison mode"),
+      tags$button(
+        id = "clear-comparison",
+        class = "clear-btn",
+        onclick = "clearComparison()",
+        "Clear All"
+      )
+    ),
+    tags$div(
       class = "layout",
       tags$div(id = "map-container", combined_map),
-      tags$div(id = "popup-sidebar", "Click a county to see details.")
-    )
+      tags$div(
+        id = "popup-sidebar",
+        tags$div(id = "single-view", class = "single-view", "Click a county to see details."),
+        tags$div(id = "comparison-view", class = "comparison-view", "Select up to 3 counties to compare.")
+      )
+    ),
+    tags$script(HTML("
+      // Comparison mode state
+      var comparisonState = {
+        enabled: false,
+        counties: [] // [{fips, name, content}]
+      };
+
+      // Load from localStorage
+      try {
+        var saved = localStorage.getItem('mapComparisonState');
+        if (saved) {
+          var parsed = JSON.parse(saved);
+          if (parsed.counties) comparisonState.counties = parsed.counties;
+        }
+      } catch(e) {}
+
+      function saveComparisonState() {
+        localStorage.setItem('mapComparisonState', JSON.stringify(comparisonState));
+      }
+
+      function toggleComparisonMode() {
+        comparisonState.enabled = !comparisonState.enabled;
+        var toggle = document.getElementById('comparison-toggle');
+        var info = document.getElementById('comparison-info');
+        var clearBtn = document.getElementById('clear-comparison');
+        var singleView = document.getElementById('single-view');
+        var comparisonView = document.getElementById('comparison-view');
+
+        if (comparisonState.enabled) {
+          toggle.classList.add('active');
+          toggle.textContent = 'Exit Compare Mode';
+          info.classList.add('active');
+          updateComparisonInfo();
+          singleView.classList.add('hidden');
+          comparisonView.classList.add('active');
+          renderComparisonPanels();
+        } else {
+          toggle.classList.remove('active');
+          toggle.textContent = 'Compare Counties';
+          info.classList.remove('active');
+          info.textContent = 'Click toggle to enable comparison mode';
+          clearBtn.classList.remove('show');
+          singleView.classList.remove('hidden');
+          comparisonView.classList.remove('active');
+        }
+      }
+
+      function updateComparisonInfo() {
+        var info = document.getElementById('comparison-info');
+        var clearBtn = document.getElementById('clear-comparison');
+        var count = comparisonState.counties.length;
+        info.textContent = count + ' of 3 counties selected' + (count < 3 ? ' - click counties to add' : ' (max reached)');
+        if (count > 0) {
+          clearBtn.classList.add('show');
+        } else {
+          clearBtn.classList.remove('show');
+        }
+      }
+
+      function renderComparisonPanels() {
+        var view = document.getElementById('comparison-view');
+        if (comparisonState.counties.length === 0) {
+          view.innerHTML = '<p style=\"color:#666;\">Click on counties in the map to add them to comparison (up to 3).</p>';
+          return;
+        }
+
+        var html = '';
+        comparisonState.counties.forEach(function(county, idx) {
+          html += '<div class=\"comparison-panel\" id=\"panel-' + county.fips + '\">' +
+            '<h4>' + county.name + ' <button class=\"remove-county-btn\" onclick=\"removeFromComparison(\\'' + county.fips + '\\')\">Remove</button></h4>' +
+            county.content +
+            '</div>';
+        });
+        view.innerHTML = html;
+      }
+
+      function addToComparison(fips, name, content) {
+        // Check if already added
+        var exists = comparisonState.counties.find(function(c) { return c.fips === fips; });
+        if (exists) {
+          // Update content
+          exists.content = content;
+          exists.name = name;
+        } else if (comparisonState.counties.length < 3) {
+          comparisonState.counties.push({ fips: fips, name: name, content: content });
+        } else {
+          alert('Maximum 3 counties can be compared. Remove one first.');
+          return;
+        }
+        saveComparisonState();
+        updateComparisonInfo();
+        renderComparisonPanels();
+      }
+
+      window.removeFromComparison = function(fips) {
+        comparisonState.counties = comparisonState.counties.filter(function(c) { return c.fips !== fips; });
+        saveComparisonState();
+        updateComparisonInfo();
+        renderComparisonPanels();
+      };
+
+      function clearComparison() {
+        comparisonState.counties = [];
+        saveComparisonState();
+        updateComparisonInfo();
+        renderComparisonPanels();
+      }
+
+      // Expose functions globally
+      window.toggleComparisonMode = toggleComparisonMode;
+      window.clearComparison = clearComparison;
+      window.addToComparison = addToComparison;
+      window.comparisonState = comparisonState;
+
+      // Initialize UI if there are saved counties
+      if (comparisonState.counties.length > 0) {
+        // Don't auto-enable, but show that data exists
+      }
+    "))
   )
 )
 ```

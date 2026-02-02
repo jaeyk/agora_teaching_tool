@@ -11,6 +11,14 @@ execute:
   message: false
 ---
 
+::: {.callout-tip}
+## Table Features
+- **Sort** any column by clicking the header
+- **Filter** using the search boxes below each column
+- **Bookmark** counties by clicking the star icon - bookmarks are saved in your browser
+- **Export** visible data using the Buttons menu
+:::
+
 ```{r}
 # Load pkgs
 if (!require(pacman)) install.packages("pacman")
@@ -68,36 +76,37 @@ df_joined <- df %>%
   mutate(civic_opp_sum_normalized = round(civic_opp_sum_normalized, 0)) %>%
   mutate(national_rank = rank(desc(civic_opp_sum_normalized), ties.method = "min")) %>%
   select(
+    FIPS,
     State = state_abbr,
     County = county_name,
-    `Civic Opportunity per Capita` = civic_opp_sum_normalized,
-    `Civic Opportunity Index` = civic_opp_index,
+    `Civic Opp Score` = civic_opp_sum_normalized,
+    `Index (1-5)` = civic_opp_index,
     Percentile = civic_opp_percentile_label,
     `State Rank` = state_rank,
-    `National Rank` = national_rank,
-    `Civic Opportunity Orgs` = civic_org_sum,
+    `Natl Rank` = national_rank,
+    `Civic Orgs` = civic_org_sum,
     `Total Nonprofits` = n,
     `Membership N` = membership_sum,
     `Volunteer N` = volunteer_sum,
     `Events N` = events_sum,
-    `Take Action N` = take_action_sum,
+    `Action N` = take_action_sum,
     `Religious %` = Religious,
-    `Social & Fraternal %` = `Social & Fraternal`,
+    `Social %` = `Social & Fraternal`,
     `Youth %` = Youth,
     `Unions %` = Unions,
-    `Healthcare %` = Healthcare,
-    `Economic %` = Economic,
-    `Education %` = Education,
-    `Research & Think Tank %` = `Research & Think Tank`,
-    `Hobby & Sports %` = `Hobby & Sports`,
+    `Health %` = Healthcare,
+    `Econ %` = Economic,
+    `Edu %` = Education,
+    `Research %` = `Research & Think Tank`,
+    `Sports %` = `Hobby & Sports`,
     `Community %` = Community,
-    `Foundations %` = Foundations,
-    `Professional %` = Professional,
-    `Arts & Cultural %` = `Arts & Cultural`,
+    `Found %` = Foundations,
+    `Prof %` = Professional,
+    `Arts %` = `Arts & Cultural`,
     `Housing %` = Housing,
     `Political %` = Political
   ) %>%
-  arrange(desc(`Civic Opportunity Index`))
+  arrange(desc(`Index (1-5)`))
 ```
 
 ::: {.callout-note collapse=true title="📘 Civic Opportunity Counts and Organization Types"}
@@ -169,10 +178,28 @@ df_joined <- df %>%
 :::
 
 ```{r}
-# Scroll tip message for users
-htmltools::tags$div(
-  style = "margin-bottom: 10px; font-style: italic; color: #555;",
-  HTML("💡 <strong>Tip:</strong> To scroll horizontally, hover over the table body — column headers are fixed and won’t scroll.")
+# Bookmark filter checkbox
+htmltools::tagList(
+  tags$div(
+    class = "bookmark-controls",
+    style = "margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;",
+    tags$label(
+      style = "display: flex; align-items: center; gap: 6px; cursor: pointer;",
+      tags$input(type = "checkbox", id = "bookmark-filter", onclick = "toggleBookmarkFilter()"),
+      tags$span("Show only bookmarked counties")
+    ),
+    tags$span(id = "bookmark-count", style = "color: #666; font-size: 13px;", "0 counties bookmarked"),
+    tags$button(
+      id = "clear-bookmarks",
+      style = "padding: 4px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; display: none;",
+      onclick = "clearAllBookmarks()",
+      "Clear All Bookmarks"
+    )
+  ),
+  tags$div(
+    style = "margin-bottom: 10px; font-style: italic; color: #555;",
+    HTML("💡 <strong>Tip:</strong> Click the ☆ icon to bookmark a county. Bookmarks persist in your browser.")
+  )
 )
 
 # Render datatable
@@ -182,21 +209,39 @@ DT::datatable(
   extensions = c('FixedHeader', 'Buttons'),
   options = list(
     dom = 'Bfrtip',
-    buttons = list('colvis'),
+    buttons = list(
+      'colvis',
+      list(
+        extend = 'csv',
+        text = 'Export CSV',
+        exportOptions = list(columns = ':visible')
+      )
+    ),
     scrollX = TRUE,
     scrollCollapse = TRUE,
     fixedHeader = TRUE,
     pageLength = 25,
     autoWidth = TRUE,
-    drawCallback = JS('function() { this.api().columns.adjust(); }'),
+    drawCallback = JS('function() {
+      this.api().columns.adjust();
+      // Initialize bookmarks after table draw
+      if (typeof initializeBookmarks === "function") {
+        initializeBookmarks();
+      }
+    }'),
     columnDefs = list(
       list(className = 'dt-center', targets = "_all"),
-      list(className = 'highlight-civic', targets = 2:12),
-      list(className = 'highlight-type', targets = 13:(ncol(df_joined) - 1))
+      list(visible = FALSE, targets = 0),  # Hide FIPS column
+      list(className = 'highlight-civic', targets = 3:13),
+      list(className = 'highlight-type', targets = 14:(ncol(df_joined) - 1))
     )
   ),
   filter = "top",
-  class = 'stripe hover nowrap'
+  class = 'stripe hover nowrap',
+  callback = JS('
+    // Store table reference globally
+    window.civicTable = table;
+  ')
 )
 ```
 
@@ -213,10 +258,10 @@ DT::datatable(
     text-overflow: ellipsis;
   }
 
-  table.dataTable tbody td:first-child,
   table.dataTable tbody td:nth-child(2),
-  table.dataTable thead th:first-child,
-  table.dataTable thead th:nth-child(2) {
+  table.dataTable tbody td:nth-child(3),
+  table.dataTable thead th:nth-child(2),
+  table.dataTable thead th:nth-child(3) {
     background-color: #f1f1f1;
     font-weight: bold;
   }
@@ -238,5 +283,193 @@ DT::datatable(
     max-width: 100% !important;
     overflow-x: visible;
   }
+
+  /* Bookmark styles */
+  .bookmark-btn {
+    cursor: pointer;
+    font-size: 18px;
+    color: #ccc;
+    background: none;
+    border: none;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+
+  .bookmark-btn:hover {
+    color: #ffc107;
+  }
+
+  .bookmark-btn.active {
+    color: #ffc107;
+  }
+
+  .bookmarked-row {
+    background-color: #fffde7 !important;
+  }
+
+  .bookmarked-row td {
+    background-color: #fffde7 !important;
+  }
 </style>
+
+<script>
+  // Bookmark storage
+  function getBookmarks() {
+    try {
+      return JSON.parse(localStorage.getItem('tableBookmarks') || '[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveBookmarks(bookmarks) {
+    localStorage.setItem('tableBookmarks', JSON.stringify(bookmarks));
+    updateBookmarkUI();
+  }
+
+  function toggleBookmark(fips) {
+    var bookmarks = getBookmarks();
+    var idx = bookmarks.indexOf(fips);
+    if (idx > -1) {
+      bookmarks.splice(idx, 1);
+    } else {
+      bookmarks.push(fips);
+    }
+    saveBookmarks(bookmarks);
+
+    // Update button state
+    var btn = document.querySelector('[data-fips="' + fips + '"]');
+    if (btn) {
+      btn.classList.toggle('active');
+      btn.textContent = btn.classList.contains('active') ? '★' : '☆';
+    }
+
+    // Update row highlight
+    updateRowHighlights();
+  }
+
+  function updateBookmarkUI() {
+    var bookmarks = getBookmarks();
+    var countEl = document.getElementById('bookmark-count');
+    var clearBtn = document.getElementById('clear-bookmarks');
+
+    if (countEl) {
+      countEl.textContent = bookmarks.length + ' counties bookmarked';
+    }
+    if (clearBtn) {
+      clearBtn.style.display = bookmarks.length > 0 ? 'inline-block' : 'none';
+    }
+  }
+
+  function updateRowHighlights() {
+    var bookmarks = getBookmarks();
+    var table = document.querySelector('.dataTable');
+    if (!table) return;
+
+    var rows = table.querySelectorAll('tbody tr');
+    rows.forEach(function(row) {
+      var btn = row.querySelector('.bookmark-btn');
+      if (btn) {
+        var fips = btn.getAttribute('data-fips');
+        if (bookmarks.indexOf(fips) > -1) {
+          row.classList.add('bookmarked-row');
+          btn.classList.add('active');
+          btn.textContent = '★';
+        } else {
+          row.classList.remove('bookmarked-row');
+          btn.classList.remove('active');
+          btn.textContent = '☆';
+        }
+      }
+    });
+  }
+
+  function initializeBookmarks() {
+    var bookmarks = getBookmarks();
+    var table = document.querySelector('.dataTable');
+    if (!table) return;
+
+    // Add bookmark buttons to each row
+    var rows = table.querySelectorAll('tbody tr');
+    rows.forEach(function(row, index) {
+      // Get FIPS from hidden first column
+      var cells = row.querySelectorAll('td');
+      if (cells.length > 0) {
+        var fips = cells[0].textContent.trim();
+
+        // Check if button already exists
+        var existingBtn = row.querySelector('.bookmark-btn');
+        if (!existingBtn) {
+          // Add button to State column (index 1)
+          var stateCell = cells[1];
+          if (stateCell) {
+            var isBookmarked = bookmarks.indexOf(fips) > -1;
+            var btn = document.createElement('button');
+            btn.className = 'bookmark-btn' + (isBookmarked ? ' active' : '');
+            btn.setAttribute('data-fips', fips);
+            btn.textContent = isBookmarked ? '★' : '☆';
+            btn.onclick = function(e) {
+              e.stopPropagation();
+              toggleBookmark(fips);
+            };
+            stateCell.insertBefore(btn, stateCell.firstChild);
+            stateCell.insertBefore(document.createTextNode(' '), btn.nextSibling);
+
+            if (isBookmarked) {
+              row.classList.add('bookmarked-row');
+            }
+          }
+        }
+      }
+    });
+
+    updateBookmarkUI();
+  }
+
+  function toggleBookmarkFilter() {
+    var checkbox = document.getElementById('bookmark-filter');
+    var table = window.civicTable;
+
+    if (!table) return;
+
+    if (checkbox && checkbox.checked) {
+      var bookmarks = getBookmarks();
+      // Custom search to filter bookmarked rows
+      $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        var fips = data[0];
+        return bookmarks.indexOf(fips) > -1;
+      });
+    } else {
+      // Remove filter
+      $.fn.dataTable.ext.search.pop();
+    }
+
+    table.draw();
+  }
+
+  function clearAllBookmarks() {
+    if (confirm('Clear all bookmarked counties?')) {
+      saveBookmarks([]);
+      updateRowHighlights();
+
+      // If filter is active, redraw
+      var checkbox = document.getElementById('bookmark-filter');
+      if (checkbox && checkbox.checked) {
+        checkbox.checked = false;
+        toggleBookmarkFilter();
+      }
+    }
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initializeBookmarks, 500);
+    updateBookmarkUI();
+  });
+
+  // Re-initialize after DataTable redraws
+  $(document).on('draw.dt', function() {
+    initializeBookmarks();
+  });
+</script>
 ```

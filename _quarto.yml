@@ -7,12 +7,16 @@ website:
     left:
       - text: Home
         href: index.qmd
+      - text: Learn
+        href: learn.qmd
       - text: Where to Start
         href: where_to_start.qmd
-      - text: Civic Opportunity Map
-        href: map.qmd  
-      - text: Civic Opportunity Table
+      - text: Map
+        href: map.qmd
+      - text: Table
         href: table.qmd
+      - text: Compare
+        href: compare.qmd
       - text: About
         href: about.qmd
 
@@ -21,4 +25,4 @@ format:
     theme:
       light: flatly
       dark: darkly
-    css: styles.css
+    css: style.css
