@@ -1,266 +1,385 @@
 ---
-title: ""
-format: html
+title: "Civic Quest"
+resources:
+  - data/civic_quest_data.json
+format:
+  html:
+    page-layout: full
+    include-in-header:
+      text: |
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 ---
 
-# MapAgora Teaching Dashboard
+<div id="cq-app" class="cq-app">
+  <div class="cq-top">
+    <h1>Civic Quest</h1>
+    <p>Type your county. Learn your place. Pick your challenge.</p>
+    <div class="cq-status">
+      <div id="cq-path" class="cq-path">
+        <span data-stage="1" class="active">1. County Scout</span>
+        <span data-stage="2">2. State Explorer</span>
+        <span data-stage="3">3. Challenge</span>
+        <span data-stage="4">4. Wrap-Up</span>
+      </div>
+      <div class="cq-score">
+        <strong id="cq-xp">0 XP</strong>
+        <div id="cq-badges"></div>
+      </div>
+    </div>
+  </div>
 
-Welcome to the **MapAgora Teaching Dashboard**, an interactive tool for
-learning about and exploring civic opportunities across U.S. counties.
-This dashboard is part of the [*Mapping the Modern
-Agora*](https://snfagora.jhu.edu/project/mapping-the-modern-agora/)
-project, hosted at the SNF Agora Institute at Johns Hopkins University,
-which systematically measures civic infrastructure using large-scale
-administrative and digital trace data.
+  <div class="cq-layout">
+    <section id="cq-panel" class="cq-panel"></section>
+    <section class="cq-map-wrap">
+      <div id="cq-map"></div>
+    </section>
+  </div>
+</div>
 
-::: {.callout-tip}
-## New to MapAgora?
-Start with the **[Learn](learn.qmd)** page to understand the data and methodology,
-then visit **[Where to Start](where_to_start.qmd)** for guided exploration steps.
-:::
+<style>
+#quarto-content main.content { max-width: 100%; }
+.cq-app { font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif; }
+.cq-top { background: linear-gradient(135deg,#14532d,#0369a1); color:#fff; border-radius:14px; padding:16px; margin-bottom:14px; }
+.cq-top h1 { margin:0; font-size:2rem; }
+.cq-top p { margin:.35rem 0 0; opacity:.95; }
+.cq-status { margin-top:12px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.cq-path { display:flex; gap:8px; flex-wrap:wrap; }
+.cq-path span { background:rgba(255,255,255,.2); border-radius:999px; padding:5px 10px; font-size:.82rem; }
+.cq-path span.active { background:#fef08a; color:#713f12; font-weight:700; }
+.cq-score { display:flex; align-items:center; gap:8px; }
+#cq-badges { display:flex; flex-wrap:wrap; gap:6px; }
+#cq-badges .b { background:#fff; color:#111827; border-radius:999px; padding:2px 8px; border:1px solid #ddd; font-size:.75rem; }
+.cq-layout { display:grid; grid-template-columns:1.1fr 1fr; gap:14px; }
+.cq-panel,.cq-map-wrap { border:1px solid #d1d5db; border-radius:14px; padding:14px; background:#fff; }
+#cq-map { height:700px; border-radius:10px; }
+.cq-note { color:#6b7280; margin:0 0 10px; }
+.cq-search { position:relative; }
+.cq-search input,.cq-select { width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; }
+.cq-suggestions { list-style:none; margin:6px 0 0; padding:0; border:1px solid #e5e7eb; border-radius:8px; max-height:220px; overflow:auto; }
+.cq-suggestions li { padding:8px 10px; border-bottom:1px solid #f3f4f6; cursor:pointer; }
+.cq-suggestions li:last-child { border-bottom:0; }
+.cq-suggestions li:hover { background:#f9fafb; }
+.cq-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.cq-card { border:1px solid #e5e7eb; border-radius:10px; padding:10px; }
+.cq-card strong { display:block; font-size:.82rem; color:#6b7280; margin-bottom:2px; }
+.cq-card span { font-size:1.2rem; font-weight:700; }
+.cq-callout { margin-top:10px; background:#fff7ed; border:1px solid #fdba74; border-radius:10px; color:#7c2d12; padding:10px; }
+.cq-actions { margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; }
+.cq-actions button { border:0; border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; }
+.cq-primary { background:#0f766e; color:#fff; }
+.cq-secondary { background:#e5e7eb; }
+.cq-challenge { background:#b45309; color:#fff; }
+.cq-summary { margin-top:10px; background:#ecfeff; border:1px solid #a5f3fc; border-radius:10px; padding:10px; }
+@media (max-width:980px){ .cq-layout { grid-template-columns:1fr; } #cq-map { height:420px; } }
+</style>
 
-### What You Can Do Here
+<script>
+(() => {
+  const state = { stage: 1, xp: 0, badges: new Set(), counties: [], states: [], county: null, stateCode: null };
+  let map, marker, barChart;
 
-| Feature | Description |
-|---------|-------------|
-| [**Learn**](learn.qmd) | Understand the data sources, methodology, and limitations |
-| [**Where to Start**](where_to_start.qmd) | Learning objectives and step-by-step exploration guides |
-| [**Map**](map.qmd) | Explore counties visually, add notes, compare up to 3 counties |
-| [**Table**](table.qmd) | Search, filter, and bookmark counties of interest |
-| [**Compare**](compare.qmd) | Side-by-side state and county comparisons |
+  const panel = document.getElementById('cq-panel');
+  const xpEl = document.getElementById('cq-xp');
+  const badgesEl = document.getElementById('cq-badges');
+  const pathEl = document.getElementById('cq-path');
 
-### Motivation
+  const fmt = (v) => Number(v || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
-Today, most people are disconnected from the democratic processes that
-allow us to engage, deliberate, and make decisions together. Civil
-society organizations are scattered, and opportunities for meaningful
-civic participation are often inaccessible.
+  function updateStatus() {
+    xpEl.textContent = `${state.xp} XP`;
+    badgesEl.innerHTML = [...state.badges].map(b => `<span class="b">${b}</span>`).join('');
+    [...pathEl.querySelectorAll('span[data-stage]')].forEach(chip => {
+      chip.classList.toggle('active', Number(chip.dataset.stage) === state.stage);
+    });
+  }
 
-We’re mapping the modern agora — a visual map of where and how people
-can engage with each other in the democratic process. By mapping civic
-opportunities, we aim to strengthen democracy by identifying areas that
-need more attention and support.
+  function addXp(x) { state.xp += x; updateStatus(); }
+  function addBadge(b) { if (!state.badges.has(b)) { state.badges.add(b); updateStatus(); } }
 
-### 📊 Civic Opportunity Dataset Construction 🛠
+  function ensureMap() {
+    if (map) return;
+    map = L.map('cq-map').setView([39.5, -98.35], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+  }
 
-To create our datasets on the landscape of civic opportunity in America,
-we begin with the IRS Exempt Organizations Business Master File — a
-comprehensive registry of all tax-exempt organizations in the U.S. This
-registry serves as our sampling frame and includes a broad range of
-nonprofit entities, even those that don’t file annual tax returns.
+  function focusCounty(c) {
+    ensureMap();
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([c.lat, c.lon]).addTo(map).bindPopup(`${c.name}, ${c.state}`).openPopup();
+    map.setView([c.lat, c.lon], 8);
+  }
 
-Next, we link IRS administrative records with data scraped directly from
-organization websites. Using a combination of machine learning and
-natural language processing, we identify the type of each organization
-and whether it provides civic opportunities such as volunteering,
-membership, public events, and engaging in civic or political action.
+  function renderStage1() {
+    state.stage = 1;
+    updateStatus();
+    panel.innerHTML = `
+      <h2>Stage 1: County Scout</h2>
+      <p class="cq-note">Type your county name or FIPS.</p>
+      <div class="cq-search">
+        <input id="cq-county-search" type="text" placeholder="Example: Autauga or 01001" autocomplete="off">
+        <ul id="cq-county-suggestions" class="cq-suggestions"></ul>
+      </div>
+      <div id="cq-county-result"></div>
+    `;
 
-The resulting datasets cover over **1.7 million de-identified
-nonprofits** and are aggregated at the ZIP code and county levels. Each
-county is scored along a five-point **Civic Opportunity Index**, with
-additional indicators for organizational composition and community
-demographics.
+    const input = document.getElementById('cq-county-search');
+    const suggestions = document.getElementById('cq-county-suggestions');
+    let timer;
 
-### About This Dashboard
+    input.addEventListener('input', (e) => {
+      clearTimeout(timer);
+      const q = e.target.value.trim().toLowerCase();
+      timer = setTimeout(() => {
+        if (!q) { suggestions.innerHTML = ''; return; }
+        const hits = state.counties.filter(c => c.name.toLowerCase().includes(q) || c.state.toLowerCase().includes(q) || c.fips.includes(q)).slice(0, 12);
+        suggestions.innerHTML = hits.map(c => `<li data-fips="${c.fips}">${c.name}, ${c.state} | ${c.urbanicity} | pop ${fmt(c.population)}</li>`).join('');
+      }, 120);
+    });
 
-This dashboard presents only a **subset** of the full *MapAgora*
-datasets. It includes:
+    suggestions.addEventListener('click', (e) => {
+      const li = e.target.closest('li[data-fips]');
+      if (!li) return;
+      const county = state.counties.find(c => c.fips === li.dataset.fips);
+      if (!county) return;
+      state.county = county;
+      state.stateCode = county.state;
+      addXp(20);
+      addBadge('Home County Discovered');
+      renderCountyResult(county);
+      if (county.lat && county.lon) focusCounty(county);
+      suggestions.innerHTML = '';
+    });
+  }
 
--   **County-level aggregates** of civic opportunity counts and
-    organizational types\
--   **Interactive visualizations** of these county-level measures
+  function renderCountyResult(c) {
+    const box = document.getElementById('cq-county-result');
+    box.innerHTML = `
+      <div class="cq-summary"><strong>Unlocked clue:</strong> ${c.name}, ${c.state} is <strong>${c.urbanicity}</strong>. Civic score <strong>${fmt(c.score)}</strong>, state rank <strong>#${c.state_rank}</strong>.</div>
+      <div class="cq-grid">
+        <div class="cq-card"><strong>Score</strong><span>${fmt(c.score)}</span></div>
+        <div class="cq-card"><strong>National Percentile</strong><span>${fmt(c.national_percentile)}%</span></div>
+        <div class="cq-card"><strong>Population</strong><span>${fmt(c.population)}</span></div>
+        <div class="cq-card"><strong>Civic Orgs</strong><span>${fmt(c.metrics.civic_orgs)}</span></div>
+      </div>
+      <div class="cq-callout">Why this matters: counties in the same RUCC group can still have very different civic opportunity levels.</div>
+      <canvas id="cq-county-chart"></canvas>
+      <div class="cq-actions">
+        <button id="cq-go-state" class="cq-primary">Learn About My State</button>
+        <button id="cq-go-challenge" class="cq-challenge">Jump to Challenge</button>
+      </div>
+    `;
 
-**Explore the Dashboard**
+    if (barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById('cq-county-chart'), {
+      type: 'bar',
+      data: {
+        labels: ['Membership', 'Volunteer', 'Events', 'Take Action'],
+        datasets: [{
+          data: [c.metrics.membership, c.metrics.volunteer, c.metrics.events, c.metrics.take_action],
+          backgroundColor: ['#0284c7','#16a34a','#d97706','#dc2626']
+        }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
 
--   📖 [**Learn the Methodology**](learn.qmd): Understand how the data was collected, what civic opportunity means, and the limitations of the dataset.
--   🎯 [**Where to Start**](where_to_start.qmd): Learning objectives and guided exploration for both map and table.
--   🗺️ [**Interactive Map**](map.qmd): View county-level civic opportunity scores, add personal notes, and compare up to 3 counties side-by-side.
--   📋 [**Interactive Table**](table.qmd): Search, filter, bookmark counties, and export data for further analysis.
--   📊 [**Compare**](compare.qmd): Side-by-side state and county comparisons with interactive charts.
+    document.getElementById('cq-go-state').addEventListener('click', () => { addXp(10); renderStage2(); });
+    document.getElementById('cq-go-challenge').addEventListener('click', () => { addXp(10); renderStage3(); });
+  }
 
-**⚠️ Important Note**
+  function renderStage2() {
+    if (!state.stateCode) return;
+    state.stage = 2;
+    updateStatus();
+    const s = state.states.find(x => x.state === state.stateCode);
+    if (!s) return;
 
-It does **not** include either the full **de-identified
-organization-level dataset** of 1.7M+ nonprofits 🏢 or the **ZIP
-code–level aggregates** 📮. This dashboard is limited to **county-level
-data only** 🗺️.
+    panel.innerHTML = `
+      <h2>Stage 2: State Explorer</h2>
+      <p class="cq-note">Now compare county types within your state.</p>
+      <div class="cq-grid">
+        <div class="cq-card"><strong>State</strong><span>${s.state}</span></div>
+        <div class="cq-card"><strong>Avg Score</strong><span>${fmt(s.avg_score)}</span></div>
+        <div class="cq-card"><strong>County Count</strong><span>${fmt(s.county_count)}</span></div>
+        <div class="cq-card"><strong>Top County</strong><span>${s.top_county}</span></div>
+      </div>
+      <div class="cq-summary">Urbanicity source: ${window.__cqMeta.urbanicity_source}</div>
+      <canvas id="cq-state-chart"></canvas>
+      <div class="cq-actions">
+        <button id="cq-to-challenge" class="cq-challenge">Start Challenge</button>
+        <button id="cq-back-county" class="cq-secondary">Back</button>
+      </div>
+    `;
 
-For ZIP-level data and detailed metadata on individual organizations,
-please refer to the full data release 📂.
+    if (barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById('cq-state-chart'), {
+      type: 'bar',
+      data: {
+        labels: ['Urban', 'Suburban', 'Rural'],
+        datasets: [{ data: [s.urban_avg, s.suburban_avg, s.rural_avg], backgroundColor: ['#2563eb','#b45309','#15803d'] }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
 
-### Data Access and Paper
+    addXp(20);
+    addBadge('State Decoder');
+    document.getElementById('cq-to-challenge').addEventListener('click', renderStage3);
+    document.getElementById('cq-back-county').addEventListener('click', renderStage1);
+  }
 
--   **Dataset 1**: organization-level dataset of de-identified nonprofit
-    organizations (1,774,798 rows $\times$ 17 columns)
+  function renderStage3() {
+    state.stage = 3;
+    updateStatus();
+    panel.innerHTML = `
+      <h2>Stage 3: Challenge</h2>
+      <p class="cq-note">Choose your comparison mode.</p>
+      <div class="cq-actions">
+        <button id="cq-mode-state" class="cq-challenge">State vs State</button>
+        <button id="cq-mode-county" class="cq-challenge">County vs County</button>
+        <button id="cq-mode-peers" class="cq-challenge">County vs Similar Counties</button>
+      </div>
+      <div id="cq-challenge-area"></div>
+    `;
+    document.getElementById('cq-mode-state').addEventListener('click', renderStateVsState);
+    document.getElementById('cq-mode-county').addEventListener('click', renderCountyVsCounty);
+    document.getElementById('cq-mode-peers').addEventListener('click', renderPeers);
+  }
 
-<details>
+  function renderStateVsState() {
+    const area = document.getElementById('cq-challenge-area');
+    const opts = state.states.map(s => `<option value="${s.state}">${s.state}</option>`).join('');
+    area.innerHTML = `
+      <div class="cq-grid" style="margin-top:10px;">
+        <div><strong>Your state</strong><select id="cq-state-a" class="cq-select">${opts}</select></div>
+        <div><strong>Other state</strong><select id="cq-state-b" class="cq-select"><option value="">Select</option>${opts}</select></div>
+      </div>
+      <div class="cq-actions"><button id="cq-run-state" class="cq-primary">Run</button></div>
+      <div id="cq-state-result"></div>
+    `;
+    document.getElementById('cq-state-a').value = state.stateCode || '';
 
-<summary><strong>Data descriptions</strong></summary>
+    document.getElementById('cq-run-state').addEventListener('click', () => {
+      const a = document.getElementById('cq-state-a').value;
+      const b = document.getElementById('cq-state-b').value;
+      if (!a || !b || a === b) return;
+      const sa = state.states.find(s => s.state === a);
+      const sb = state.states.find(s => s.state === b);
+      const gaps = {
+        urban: (sa.urban_avg - sb.urban_avg).toFixed(2),
+        suburban: (sa.suburban_avg - sb.suburban_avg).toFixed(2),
+        rural: (sa.rural_avg - sb.rural_avg).toFixed(2),
+        avg: (sa.avg_score - sb.avg_score).toFixed(2),
+      };
+      document.getElementById('cq-state-result').innerHTML = `
+        <div class="cq-callout">Biggest clue: urban gap ${gaps.urban}, rural gap ${gaps.rural} (${a} minus ${b}).</div>
+        <canvas id="cq-gap-chart"></canvas>
+        <div class="cq-actions"><button id="cq-finish" class="cq-primary">Finish Quest</button></div>
+      `;
+      if (barChart) barChart.destroy();
+      barChart = new Chart(document.getElementById('cq-gap-chart'), {
+        type:'bar',
+        data:{ labels:['Urban gap','Suburban gap','Rural gap','Overall gap'], datasets:[{ data:[gaps.urban,gaps.suburban,gaps.rural,gaps.avg], backgroundColor:['#1d4ed8','#a16207','#15803d','#7c3aed'] }] },
+        options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+      });
+      addXp(30);
+      addBadge('Cross-State Challenger');
+      document.getElementById('cq-finish').addEventListener('click', renderStage4);
+    });
+  }
 
-This dataset includes 1,774,798 de-identified nonprofit organizations.
-To protect privacy and reduce the risk of misinterpretation, all
-identifying information (e.g., organization names and EINs) is removed.
+  function renderCountyVsCounty() {
+    const area = document.getElementById('cq-challenge-area');
+    if (!state.county) { area.innerHTML = '<div class="cq-callout">Pick a county first in Stage 1.</div>'; return; }
+    area.innerHTML = `
+      <div class="cq-search" style="margin-top:10px;">
+        <input id="cq-other-county" type="text" placeholder="Type other county name or FIPS" autocomplete="off">
+        <ul id="cq-other-suggestions" class="cq-suggestions"></ul>
+      </div>
+      <div id="cq-county-result2"></div>
+    `;
+    const input = document.getElementById('cq-other-county');
+    const sug = document.getElementById('cq-other-suggestions');
+    let timer;
+    input.addEventListener('input', (e) => {
+      clearTimeout(timer);
+      const q = e.target.value.trim().toLowerCase();
+      timer = setTimeout(() => {
+        if (!q) { sug.innerHTML=''; return; }
+        const hits = state.counties.filter(c => c.name.toLowerCase().includes(q) || c.fips.includes(q)).slice(0, 12);
+        sug.innerHTML = hits.map(c => `<li data-fips="${c.fips}">${c.name}, ${c.state} | ${c.urbanicity}</li>`).join('');
+      }, 120);
+    });
+    sug.addEventListener('click', (e) => {
+      const li = e.target.closest('li[data-fips]');
+      if (!li) return;
+      const other = state.counties.find(c => c.fips === li.dataset.fips);
+      if (!other) return;
+      const a = state.county;
+      const delta = (a.score - other.score).toFixed(2);
+      document.getElementById('cq-county-result2').innerHTML = `
+        <div class="cq-grid" style="margin-top:10px;">
+          <div class="cq-card"><strong>${a.name}, ${a.state}</strong><span>${fmt(a.score)}</span></div>
+          <div class="cq-card"><strong>${other.name}, ${other.state}</strong><span>${fmt(other.score)}</span></div>
+        </div>
+        <div class="cq-callout">Score difference clue: ${delta} (${a.name} minus ${other.name}).</div>
+        <div class="cq-actions"><button id="cq-finish" class="cq-primary">Finish Quest</button></div>
+      `;
+      addXp(30);
+      addBadge('County Duelist');
+      document.getElementById('cq-finish').addEventListener('click', renderStage4);
+    });
+  }
 
-Each observation includes:
+  function renderPeers() {
+    const area = document.getElementById('cq-challenge-area');
+    if (!state.county) { area.innerHTML = '<div class="cq-callout">Pick a county first in Stage 1.</div>'; return; }
+    const peers = state.county.peers || [];
+    if (!peers.length) { area.innerHTML = '<div class="cq-callout">No same-group peers found.</div>'; return; }
+    area.innerHTML = `
+      <div class="cq-summary">Peers in your state with the same group (${state.county.urbanicity}):</div>
+      <ol>${peers.map(p => `<li>${p.name}, ${p.state} - ${fmt(p.score)}</li>`).join('')}</ol>
+      <div class="cq-callout">Interpretation clue: compare whether your county over- or under-performs against same-group peers.</div>
+      <div class="cq-actions"><button id="cq-finish" class="cq-primary">Finish Quest</button></div>
+    `;
+    addXp(30);
+    addBadge('Urban-Rural Analyst');
+    document.getElementById('cq-finish').addEventListener('click', renderStage4);
+  }
 
--   Unique identifier:
-    -   `id`: a row index used for reference; contains no identifying
-        information.
--   Geographic identifiers:
-    -   `state`: two-letter state abbreviation\
-    -   `city`: city name listed in the IRS record\
-    -   `FIPS`: county FIPS code\
-    -   `ZCTA`: ZIP Code Tabulation Area
--   Civic opportunity indicators:
-    -   `membership`, `volunteer`, `events`, `take_action`: binary
-        variables indicating whether the organization provides each type
-        of civic opportunity (1 = provides the opportunity; 0 = does not
-        provide it or information is unavailable)\
-    -   `opp_binary`: equals 1 if the organization provides at least one
-        civic opportunity; 0 otherwise\
-    -   `opp_mean`: the mean of the four civic opportunity binary
-        indicators
--   Organizational type:
-    -   `predicted`: machine-learned classification of the organization
-        (e.g., religious, political, professional)
--   Address metadata:
-    -   `is_po`: indicates whether the organization lists a P.O. Box as
-        its mailing address (1 = yes, 0 = no)\
-    -   `grouping_value`: an anonymized internal identifier used to
-        track federated organizations (e.g., national networks with
-        local chapters)
--   Financial attributes:
-    -   `asset_amt`: total assets\
-    -   `income_amt`: total income\
-    -   `revenue_amt`: total revenue
+  function renderStage4() {
+    state.stage = 4;
+    updateStatus();
+    const c = state.county;
+    const line = c ? `${c.name}, ${c.state} is ${c.urbanicity} with score ${fmt(c.score)}.` : 'No county selected.';
+    panel.innerHTML = `
+      <h2>Stage 4: Wrap-Up</h2>
+      <div class="cq-summary">
+        <p><strong>County insight:</strong> ${line}</p>
+        <p><strong>State explored:</strong> ${state.stateCode || 'N/A'}</p>
+        <p><strong>XP:</strong> ${state.xp}</p>
+        <p><strong>Badges:</strong> ${[...state.badges].join(', ') || 'None'}</p>
+      </div>
+      <div class="cq-actions"><button id="cq-restart" class="cq-primary">Start Over</button></div>
+    `;
+    addBadge('Civic Strategist');
+    document.getElementById('cq-restart').addEventListener('click', () => {
+      state.stage = 1; state.xp = 0; state.badges = new Set(); state.county = null; state.stateCode = null;
+      if (marker && map) { map.removeLayer(marker); marker = null; }
+      updateStatus(); renderStage1();
+    });
+  }
 
-</details>
+  async function init() {
+    ensureMap();
+    const payload = await fetch('data/civic_quest_data.json').then(r => r.json());
+    state.counties = payload.counties || [];
+    state.states = payload.states || [];
+    window.__cqMeta = payload.metadata || {};
+    updateStatus();
+    renderStage1();
+  }
 
--   **Datasets 2-3**: Aggregated civic opportunity counts at the county
-    (3,281 rows $\times$ 24 columns) and ZIP code levels (30,988 rows
-    $\times$ 24 columns)
-
-<details>
-
-<summary><strong>Data descriptions</strong></summary>
-
-Derived from Dataset 1, this dataset aggregates civic opportunity
-indicators and socioeconomic characteristics at the ZIP code (ZCTA) and
-county levels. Each observation corresponds to a geographic unit and
-includes counts of civic opportunity types, a composite score and index,
-normalized indicators, and contextual variables from the American
-Community Survey (ACS).
-
-Each observation includes:
-
--   Geographic identifiers:
-    -   `state`: two-letter state abbreviation\
-    -   `FIPS`: county FIPS code\
-    -   `ZCTA`: ZIP Code Tabulation Area
--   Organizational counts:
-    -   `n`: total nonprofit organizations\
-    -   `civic_org_sum`: total civic opportunity organizations\
-    -   `membership_sum`: total organizations providing membership
-        opportunities\
-    -   `volunteer_sum`: total organizations providing volunteer
-        opportunities\
-    -   `events_sum`: total organizations providing public event
-        opportunities\
-    -   `take_action_sum`: total organizations providing political or
-        civic action opportunities
--   Composite civic opportunity scores:
-    -   `civic_opp_sum`: total opportunity score
--   Normalized civic opportunity indicators (per capita):
-    -   `civic_org_sum_normalized`: total number of civic organizations
-        per capita\
-    -   `civic_opp_sum_normalized`: total civic opportunities per
-        capita\
-    -   `civic_opp_index`: quintile-based civic opportunity index,
-        derived by dividing `civic_opp_sum_normalized` into five
-        equal-sized bins\
-    -   `membership_sum_normalized`: total number of organizations
-        providing membership opportunities per capita\
-    -   `volunteer_sum_normalized`: total number of organizations
-        providing volunteer opportunities per capita\
-    -   `events_sum_normalized`: total number of organizations providing
-        public event opportunities per capita\
-    -   `take_action_sum_normalized`: total number of organizations
-        providing political or civic action opportunities per capita
--   Sociodemographic indicators:
-    -   `TotalPopulation`: total population\
-    -   `POV150`: poverty rate\
-    -   `SNGPNT`: single-parent households\
-    -   `BROAD`: households without broadband access\
-    -   `NOHSDP`: adults without a high school diploma\
-    -   `UNEMP`: unemployment rate\
-    -   `REMNRTY`: share of racial or ethnic minority residents
-
-</details>
-
--   **Datasets 4-5**: Aggregated organizational type breakdowns at the
-    county (29,687 rows $\times$ 5 columns) and ZIP code levels (150,162
-    rows $\times$ 5 columns)
-
-<details>
-
-<summary><strong>Data descriptions</strong></summary>
-
-Also derived from Dataset 1, this dataset summarizes the types of
-organizations that provide civic opportunities at the ZIP code and
-county levels. Each observation corresponds to a unique
-geography-organization type pair and enables analysis of regional
-patterns in the composition of civic infrastructure.
-
-Each observation includes:
-
--   Geographic identifiers:
-    -   `FIPS`: county FIPS code\
-    -   `ZCTA`: ZIP Code Tabulation Area
--   Organizational counts:
-    -   `n`: number of civic opportunity-providing organizations of a
-        given type in the geography
--   Organization type classification:
-    -   `class`: predicted organizational type (e.g., religious,
-        political, professional)
--   Relative frequency:
-    -   `freq`: proportion of civic opportunity organizations in the
-        geography that fall into the given class
--   Primary provider type:
-    -   `primary_org_cat`: the most common civic opportunity
-        organization type in the geography; appears once per unit
-
-</details>
-
-The full datasets, along with documentation, are available via:
-
--   📂 [GitHub
-    Repository](https://github.com/snfagora/american_civic_opportunity_datasets)
-
--   📊 [Harvard Dataverse (archived
-    release)](https://doi.org/10.7910/DVN/IRCA7C)
-
--   📄 *The Mapping the Modern Agora* data Paper: [*MapAgora, Civic
-    Opportunity Datasets for the Study of American Local Politics and
-    Public Policy*](https://www.nature.com/articles/s41597-025-05353-6.epdf?sharing_token=4HNrMMO7VOt9eQU42u5HrtRgN0jAjWel9jnR3ZoTv0Mpc6G86FwIcTyoYmFsd3Uahts-NrsxWU-Q0gVeUk6vtZN_k8pGamsuixpoqi1fOhudhtavd6jX7U8p5I4FQf1oJKpcfff8nLXFvlsgow1agfORM7KYSpMi13jgivdJVAs%3D) (Jae Yeon Kim, Milan de Vries, and Hahrie Han) —
-    *Nature: Scientific Data*, Online First in July 2025
-    [\[replication\]](https://github.com/snfagora/american_civic_opportunity_datasets)
-    [\[supplementary
-    materials\]](https://www.readcube.com/articles/supplement?doi=10.1038%2Fs41597-025-05353-6&index=0)
-
-### References 📚
-
--   *The Mapping the Modern Agora* empirical paper:\
-    ["The Unequal Landscape of Civic Opportunity in
-    America."](https://www.nature.com/articles/s41562-023-01743-1?utm_campaign=related_content&utm_source=SOCIAL&utm_medium=communities)\
-    *(Milan de Vries, Jae Yeon Kim, and Hahrie Han)* — *Nature Human
-    Behaviour*, Online First in November 2023\
-    [\[replication\]](https://github.com/snfagora/map_civic_opportunity/tree/main)
-    [\[supplementary
-    materials\]](https://static-content.springer.com/esm/art%3A10.1038%2Fs41562-023-01743-1/MediaObjects/41562_2023_1743_MOESM1_ESM.pdf)
-
--   *The Mapping the Modern Agora* concept paper:\
-    ["Civil Society, Realized: Equipping the Mass Public to Express
-    Choice and Negotiate
-    Power."](https://journals.sagepub.com/doi/full/10.1177/00027162221077471)\
-    *(Hahrie Han and Jae Yeon Kim)* — *The ANNALS of the American
-    Academy of Political and Social Science*, 2022, 699(1), 175–185
+  init();
+})();
+</script>

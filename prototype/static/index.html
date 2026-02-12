@@ -1,49 +1,41 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MMA Teaching Prototype</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Civic Quest Prototype</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1>MMA Teaching — County Explorer (Prototype)</h1>
-      <div class="search-row">
-        <div class="search-col">
-          <input id="searchA" placeholder="County A: type name or FIPS..." autocomplete="off">
-          <ul id="suggestionsA" class="suggestions"></ul>
+  <div class="app-shell">
+    <header class="topbar">
+      <h1>Civic Quest</h1>
+      <p>Discover your county, learn your state, then choose your challenge.</p>
+      <div class="status-row">
+        <div id="questPath" class="quest-path">
+          <span data-stage="1" class="active">1. County Scout</span>
+          <span data-stage="2">2. State Explorer</span>
+          <span data-stage="3">3. Challenge Mode</span>
+          <span data-stage="4">4. Civic Strategist</span>
         </div>
-        <div class="search-col">
-          <input id="searchB" placeholder="County B: type name or FIPS..." autocomplete="off">
-          <ul id="suggestionsB" class="suggestions"></ul>
+        <div class="scorebox">
+          <strong id="xpValue">0 XP</strong>
+          <div id="badgeList" class="badges"></div>
         </div>
-      </div>
-      <div class="controls">
-        <button id="clearA">Clear A</button>
-        <button id="swap">Swap A ↔ B</button>
-        <button id="clearB">Clear B</button>
-        <div id="legend" class="legend">Legend: <span class="swatch a"></span> A &nbsp; <span class="swatch b"></span> B</div>
       </div>
     </header>
-    <main>
-      <section class="compare-row">
-        <div id="left" class="panel">
-          <section id="overviewA" class="card-row"></section>
-          <section id="chartsA"><canvas id="orgChartA"></canvas></section>
-        </div>
-        <div id="right" class="panel">
-          <section id="overviewB" class="card-row"></section>
-          <section id="chartsB"><canvas id="orgChartB"></canvas></section>
-        </div>
+
+    <main class="layout">
+      <section id="stagePanel" class="stage-panel"></section>
+      <section class="map-panel">
+        <div id="map"></div>
       </section>
-      <section id="map" style="height:520px"></section>
     </main>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
